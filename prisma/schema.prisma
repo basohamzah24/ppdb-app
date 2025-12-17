@@ -75,3 +75,36 @@ model Dokumen {
 
   @@map("dokumen")
 }
+
+// Model untuk admin system
+model Admin {
+  id        String    @id @default(cuid())
+  username  String    @unique
+  password  String // hashed password
+  nama      String // Nama lengkap admin
+  email     String?   @unique
+  role      String    @default("admin") // admin, super_admin
+  isActive  Boolean   @default(true) @map("is_active")
+  lastLogin DateTime? @map("last_login")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  sessions AdminSession[]
+
+  @@map("admin")
+}
+
+// Model untuk session management
+model AdminSession {
+  id        String   @id @default(cuid())
+  adminId   String   @map("admin_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_session")
+}

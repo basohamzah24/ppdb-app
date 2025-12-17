@@ -3,23 +3,28 @@ import { NextRequest, NextResponse } from 'next/server'
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   
-  // Hanya proteksi route admin, KECUALI halaman login
-  if (pathname.startsWith('/admin') && pathname !== '/admin' && pathname !== '/admin/login') {
+  // Hanya proteksi route admin
+  if (pathname.startsWith('/admin')) {
     const adminSession = request.cookies.get('admin-session')
-    
-    // Jika tidak ada session, redirect ke login
-    if (!adminSession || adminSession.value !== 'admin-authenticated') {
-      const loginUrl = new URL('/admin/login', request.url)
-      return NextResponse.redirect(loginUrl)
-    }
-  }
-  
-  // Jika sudah login dan akses halaman login, redirect ke dashboard
-  if (pathname === '/admin' || pathname === '/admin/login') {
-    const adminSession = request.cookies.get('admin-session')
-    if (adminSession && adminSession.value === 'admin-authenticated') {
-      const dashboardUrl = new URL('/admin/dashboard', request.url)
-      return NextResponse.redirect(dashboardUrl)
+    const sessionToken = adminSession?.value
+
+    // Route yang tidak perlu autentikasi
+    const publicAdminRoutes = ['/admin/login']
+    const isPublicRoute = publicAdminRoutes.includes(pathname)
+
+    if (!isPublicRoute) {
+      // Route yang perlu autentikasi - hanya cek keberadaan session token
+      if (!sessionToken) {
+        const loginUrl = new URL('/admin/login', request.url)
+        return NextResponse.redirect(loginUrl)
+      }
+      // Full verification akan dilakukan di API routes atau server components
+    } else {
+      // Jika sudah ada session token dan akses halaman login, redirect ke dashboard
+      if (sessionToken) {
+        const dashboardUrl = new URL('/admin/dashboard', request.url)
+        return NextResponse.redirect(dashboardUrl)
+      }
     }
   }
   

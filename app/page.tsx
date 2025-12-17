@@ -13,6 +13,8 @@ export default async function Home() {
   const contactPhone = await getContentByKey('contact_phone')
   const contactEmail = await getContentByKey('contact_email')
   const announcement = await getContentByKey('announcement_main')
+  const visiSekolah = await getContentByKey('visi_sekolah')
+  const misiSekolah = await getContentByKey('misi_sekolah')
   
   // Ambil pengaturan PPDB
   const ppdbSettings = await getPPDBSettings()
@@ -32,6 +34,10 @@ export default async function Home() {
       address: contactAddress?.content || 'Jalan Trans Sumpira, Kec. Baebunta, Kab. Luwu Utara, Sulawesi Selatan',
       phone: contactPhone?.content || '(0473) 123456',
       email: contactEmail?.content || 'info@uptsdn061sumpira.sch.id'
+    },
+    visiMisi: {
+      visi: visiSekolah?.content || 'Mewujudkan peserta didik yang beriman, bertakwa, berakhlak mulia, cerdas, kreatif, dan berprestasi dalam menghadapi tantangan masa depan.',
+      misi: misiSekolah?.content || 'Menyelenggarakan pendidikan yang berkualitas, mengembangkan potensi peserta didik secara optimal, menciptakan lingkungan belajar yang kondusif, dan membangun kerjasama yang harmonis dengan masyarakat.'
     },
     announcement: announcement?.content || '',
     ppdbSettings: ppdbSettings ? {
