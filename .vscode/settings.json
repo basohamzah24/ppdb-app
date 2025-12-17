@@ -1,0 +1,25 @@
+{
+  "prisma.showPrismaDataPlatformNotification": false,
+  "prisma.validateOnSave": false,
+  "prisma.schemaValidation": false,
+  "prisma.trace.server": "off",
+  "prisma.fileWatcher": false,
+  "prisma.enabledLanguageFeatures": {
+    "diagnostics": false,
+    "validation": false,
+    "completion": true,
+    "definition": true,
+    "hover": true,
+    "rename": true,
+    "documentHighlight": true,
+    "documentSymbol": true
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma",
+    "editor.formatOnSave": true
+  },
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
+}

@@ -1,65 +1,54 @@
-import Image from "next/image";
+import { getContentByKey, getPPDBSettings } from './admin/actions/content'
+import HomeClient from './components/HomeClient'
+import { Suspense } from 'react'
 
-export default function Home() {
+export default async function Home() {
+  // Ambil data konten dari database menggunakan service yang bersih
+  const heroTitle = await getContentByKey('hero_title')
+  const heroSubtitle = await getContentByKey('hero_subtitle')
+  const heroDescription = await getContentByKey('hero_description')
+  const aboutTitle = await getContentByKey('about_title')
+  const aboutContent = await getContentByKey('about_content')
+  const contactAddress = await getContentByKey('contact_address')
+  const contactPhone = await getContentByKey('contact_phone')
+  const contactEmail = await getContentByKey('contact_email')
+  const announcement = await getContentByKey('announcement_main')
+  
+  // Ambil pengaturan PPDB
+  const ppdbSettings = await getPPDBSettings()
+
+  // Data untuk komponen client
+  const pageData = {
+    hero: {
+      title: heroTitle?.content || 'UPT SD Negeri 061 Sumpira',
+      subtitle: heroSubtitle?.content || 'PPDB Online Tahun Ajaran 2025/2026',
+      description: heroDescription?.content || 'Selamat datang di sistem Penerimaan Peserta Didik Baru (PPDB) Online UPT SD Negeri 061 Sumpira. Daftar sekarang untuk masa depan yang cerah!'
+    },
+    about: {
+      title: aboutTitle?.content || 'Tentang Sekolah Kami',
+      content: aboutContent?.content || 'UPT SD Negeri 061 Sumpira adalah sekolah dasar negeri yang berkomitmen untuk memberikan pendidikan berkualitas bagi putra-putri Indonesia. Dengan fasilitas lengkap dan tenaga pengajar yang berpengalaman, kami siap membentuk generasi penerus bangsa yang cerdas dan berkarakter.'
+    },
+    contact: {
+      address: contactAddress?.content || 'Jalan Trans Sumpira, Kec. Baebunta, Kab. Luwu Utara, Sulawesi Selatan',
+      phone: contactPhone?.content || '(0473) 123456',
+      email: contactEmail?.content || 'info@uptsdn061sumpira.sch.id'
+    },
+    announcement: announcement?.content || '',
+    ppdbSettings: ppdbSettings ? {
+      tahunAjaran: ppdbSettings.tahunAjaran,
+      statusPendaftaran: ppdbSettings.statusPendaftaran,
+      tanggalBuka: ppdbSettings.tanggalBuka,
+      tanggalTutup: ppdbSettings.tanggalTutup,
+      kuotaSiswa: ppdbSettings.kuotaSiswa,
+      persyaratan: Array.isArray(ppdbSettings.persyaratan) ? ppdbSettings.persyaratan as string[] : [],
+      alurPendaftaran: Array.isArray(ppdbSettings.alurPendaftaran) ? ppdbSettings.alurPendaftaran as string[] : [],
+      informasiTambahan: ppdbSettings.informasiTambahan
+    } : null
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    <Suspense fallback={<div className="min-h-screen bg-gray-100 animate-pulse"></div>}>
+      <HomeClient data={pageData} />
+    </Suspense>
+  )
 }

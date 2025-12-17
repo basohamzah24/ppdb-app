@@ -1,0 +1,118 @@
+'use server'
+
+import { 
+  authenticateAdmin, 
+  createSession, 
+  setSessionCookie, 
+  clearSessionCookie, 
+  deleteSession, 
+  deleteAllUserSessions,
+  getSessionFromCookie,
+  getCurrentAdmin as getAdmin,
+  cleanupExpiredSessions
+} from '@/lib/auth'
+import { redirect } from 'next/navigation'
+
+export async function loginAction(formData: FormData): Promise<void> {
+  const username = formData.get('username') as string
+  const password = formData.get('password') as string
+  const redirectTo = (formData.get('redirectTo') as string) || '/admin/dashboard'
+
+  // Validate input
+  if (!username || !password) {
+    redirect('/admin/login?error=missing-credentials')
+  }
+
+  try {
+    // Clean up expired sessions first
+    await cleanupExpiredSessions()
+
+    // Authenticate admin
+    const admin = await authenticateAdmin(username, password)
+    if (!admin) {
+      redirect('/admin/login?error=invalid-credentials')
+    }
+
+    // Create session in database
+    const sessionToken = await createSession(admin.id)
+    
+    // Set secure HTTP-only cookie
+    await setSessionCookie(sessionToken)
+
+    // Successful login - redirect to dashboard
+    redirect(redirectTo)
+  } catch (error) {
+    // Don't catch NEXT_REDIRECT errors - they are normal Next.js flow
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error
+    }
+    
+    console.error('Login action error:', error)
+    redirect('/admin/login?error=server-error')
+  }
+}
+
+export async function logoutAction(): Promise<void> {
+  try {
+    // Get current session to delete it from database
+    const session = await getSessionFromCookie()
+    
+    if (session) {
+      // Delete session from database
+      await deleteSession(session.token)
+    }
+
+    // Clear cookie
+    await clearSessionCookie()
+  } catch (error) {
+    // Don't catch NEXT_REDIRECT errors
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error
+    }
+    console.error('Logout action error:', error)
+  }
+
+  // Redirect to login
+  redirect('/admin/login?message=logged-out')
+}
+
+export async function logoutAllSessionsAction(): Promise<void> {
+  try {
+    // Get current session
+    const session = await getSessionFromCookie()
+    
+    if (session) {
+      // Delete all sessions for this admin
+      await deleteAllUserSessions(session.adminId)
+    }
+
+    // Clear cookie
+    await clearSessionCookie()
+  } catch (error) {
+    // Don't catch NEXT_REDIRECT errors
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      throw error
+    }
+    console.error('Logout all sessions error:', error)
+  }
+
+  // Redirect to login
+  redirect('/admin/login?message=all-sessions-logged-out')
+}
+
+// Re-export getCurrentAdmin for use in components
+export async function getCurrentAdmin() {
+  return await getAdmin()
+}
+
+// Utility action to check if user is authenticated
+export async function checkAuthenticationAction(): Promise<boolean> {
+  try {
+    const admin = await getAdmin()
+    return admin !== null
+  } catch (error) {
+    console.error('Check authentication error:', error)
+    return false
+  }
+}
+
