@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import GoogleMapsSection from "./GoogleMapsSection"
 
 interface PageData {
@@ -36,6 +36,8 @@ interface PageData {
 export default function HomeClient({ data }: { data: PageData }) {
   const [showInfo, setShowInfo] = useState(false)
   const [activeTab, setActiveTab] = useState('persyaratan')
+  const [isLoading, setIsLoading] = useState(true)
+  const [showContent, setShowContent] = useState(false)
 
   // Cek apakah pendaftaran sedang buka
   const isPendaftaranOpen = data.ppdbSettings ? 
@@ -44,33 +46,46 @@ export default function HomeClient({ data }: { data: PageData }) {
     new Date() <= new Date(data.ppdbSettings.tanggalTutup)
     : false
 
+  // Animasi loading saat komponen dimuat
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+      setTimeout(() => setShowContent(true), 100)
+    }, 1500)
+
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
-    <div>
-      {/* Pengumuman Banner */}
-      {data.announcement && (
-        <div className="bg-yellow-400 text-center py-3 px-4">
-          <p className="font-semibold text-gray-900">{data.announcement}</p>
+    <>
+      {/* Loading Screen */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 z-50 flex items-center justify-center">
+          <div className="text-center text-white">
+            {/* Logo animasi */}
+            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-scaleIn shadow-2xl">
+              <span className="text-4xl animate-bounce-gentle">🏫</span>
+            </div>
+            
+            {/* Title */}
+            <h1 className="text-4xl font-bold mb-2 animate-slideDown">PPDB Online</h1>
+            <p className="text-blue-100 mb-8 animate-slideDown" style={{ animationDelay: '0.2s' }}>Sekolah Dasar</p>
+            
+            {/* Loading dots */}
+            <div className="flex justify-center space-x-2 mb-4">
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+            
+            <p className="text-blue-200 text-sm animate-pulse-gentle">Memuat halaman...</p>
+          </div>
         </div>
       )}
 
-      {/* PPDB Status Banner */}
-      {data.ppdbSettings && (
-        <div className={`text-center py-3 px-4 ${
-          isPendaftaranOpen ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-        }`}>
-          <p className="font-semibold">
-            PPDB {data.ppdbSettings.tahunAjaran} - Status: {isPendaftaranOpen ? 'BUKA' : 'TUTUP'}
-            {data.ppdbSettings && (
-              <span className="ml-2">
-                ({new Date(data.ppdbSettings.tanggalBuka).toLocaleDateString('id-ID')} - 
-                {new Date(data.ppdbSettings.tanggalTutup).toLocaleDateString('id-ID')})
-              </span>
-            )}
-          </p>
-        </div>
-      )}
-
-      {/* ================= HERO SECTION ================= */}
+      {/* Main Content */}
+      <div className={`transition-all duration-1000 ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        {/* ================= HERO SECTION ================= */}
       <section className="relative h-screen w-full overflow-hidden">
         <Image
           src="/Dashboar.jpg"
@@ -87,24 +102,24 @@ export default function HomeClient({ data }: { data: PageData }) {
         {/* Content */}
         <div className="absolute inset-0 flex items-center justify-center text-center px-4">
           <div className="max-w-4xl text-white space-y-6">
-            <h1 className="text-4xl md:text-6xl font-bold">
+            <h1 className="text-4xl md:text-6xl font-bold animate-fadeIn" style={{ animationDelay: '0.3s' }}>
               {data.hero.title}
             </h1>
             
-            <p className="text-xl md:text-2xl font-light">
+            <p className="text-xl md:text-2xl font-light animate-fadeIn" style={{ animationDelay: '0.6s' }}>
               {data.hero.subtitle}
             </p>
             
-            <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed animate-fadeIn" style={{ animationDelay: '0.9s' }}>
               {data.hero.description}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8 animate-fadeIn" style={{ animationDelay: '1.2s' }}>
               <Link
                 href="/daftar"
-                className={`px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-300 ${
+                className={`px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 ${
                   isPendaftaranOpen
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl'
                     : 'bg-gray-600 cursor-not-allowed text-gray-300'
                 }`}
               >
@@ -113,7 +128,7 @@ export default function HomeClient({ data }: { data: PageData }) {
               
               <button
                 onClick={() => setShowInfo(true)}
-                className="px-8 py-4 bg-transparent border-2 border-white text-white text-lg font-semibold rounded-lg hover:bg-white hover:text-gray-900 transition-all duration-300"
+                className="px-8 py-4 bg-transparent border-2 border-white text-white text-lg font-semibold rounded-lg hover:bg-white hover:text-gray-900 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Info Lengkap PPDB
               </button>
@@ -124,8 +139,8 @@ export default function HomeClient({ data }: { data: PageData }) {
 
       {/* Modal Info PPDB */}
       {showInfo && data.ppdbSettings && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold">Informasi PPDB {data.ppdbSettings.tahunAjaran}</h2>
               <button
@@ -223,11 +238,11 @@ export default function HomeClient({ data }: { data: PageData }) {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8 animate-fadeIn">
               {data.about.title}
             </h2>
             
-            <p className="text-lg text-gray-700 leading-relaxed">
+            <p className="text-lg text-gray-700 leading-relaxed animate-fadeIn" style={{ animationDelay: '0.3s' }}>
               {data.about.content}
             </p>
           </div>
@@ -238,13 +253,13 @@ export default function HomeClient({ data }: { data: PageData }) {
       <section className="py-20 bg-gray-100">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center animate-fadeIn">
               Hubungi Kami
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="bg-blue-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="text-center animate-fadeIn card-hover" style={{ animationDelay: '0.3s' }}>
+                <div className="bg-blue-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -254,8 +269,8 @@ export default function HomeClient({ data }: { data: PageData }) {
                 <p className="text-gray-700">{data.contact.address}</p>
               </div>
               
-              <div className="text-center">
-                <div className="bg-blue-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="text-center animate-fadeIn card-hover" style={{ animationDelay: '0.6s' }}>
+                <div className="bg-blue-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ animationDelay: '0.5s' }}>
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
@@ -264,8 +279,8 @@ export default function HomeClient({ data }: { data: PageData }) {
                 <p className="text-gray-700">{data.contact.phone}</p>
               </div>
               
-              <div className="text-center">
-                <div className="bg-blue-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="text-center animate-fadeIn card-hover" style={{ animationDelay: '0.9s' }}>
+                <div className="bg-blue-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-float" style={{ animationDelay: '1s' }}>
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
@@ -279,7 +294,10 @@ export default function HomeClient({ data }: { data: PageData }) {
       </section>
 
       {/* Google Maps Section */}
-      <GoogleMapsSection />
-    </div>
+      <div className="animate-fadeIn" style={{ animationDelay: '1.2s' }}>
+        <GoogleMapsSection />
+      </div>
+      </div>
+    </>
   )
 }
