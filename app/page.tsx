@@ -1,4 +1,4 @@
-import { getContentByKey, getPPDBSettings } from './admin/actions/content'
+import { getContentByKey, getPPDBSettings } from '@/lib/content'
 import HomeClient from './components/HomeClient'
 import { Suspense } from 'react'
 

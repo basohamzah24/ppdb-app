@@ -7,71 +7,33 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  // url       = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-model Admin {
-  id           String   @id @default(cuid())
-  username     String   @unique
-  passwordHash String   @map("password_hash")
-  role         String   @default("admin")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  @@map("admins")
-}
-
-// Model untuk manajemen konten yang dapat dikelola admin
-model SiteContent {
-  id        String   @id @default(cuid())
-  key       String   @unique // Identifier unik untuk setiap konten
-  title     String // Judul konten
-  content   String   @db.Text // Isi konten (text panjang)
-  type      String // Tipe konten: 'hero', 'info', 'announcement', 'contact', etc.
-  isActive  Boolean  @default(true) // Aktif/tidak aktif
-  metadata  Json? // Data tambahan dalam format JSON
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("site_content")
-}
-
-model PPDBSettings {
-  id                String   @id @default(cuid())
-  tahunAjaran       String   @map("tahun_ajaran")
-  tanggalBuka       DateTime @map("tanggal_buka")
-  tanggalTutup      DateTime @map("tanggal_tutup")
-  kuotaSiswa        Int      @map("kuota_siswa")
-  statusPendaftaran String   @default("tutup") @map("status_pendaftaran") // buka, tutup
-  persyaratan       Json // Array persyaratan dalam JSON
-  alurPendaftaran   Json // Array alur pendaftaran dalam JSON
-  informasiTambahan String?  @map("informasi_tambahan") @db.Text
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-
-  @@map("ppdb_settings")
-}
-
+// Model untuk data pendaftar/calon siswa
 model Pendaftar {
   id                String   @id @default(cuid())
-  nik               String   @unique
-  namaLengkap       String   @map("nama_lengkap")
-  tempatLahir       String   @map("tempat_lahir")
-  tanggalLahir      DateTime @map("tanggal_lahir")
-  jenisKelamin      String   @map("jenis_kelamin") // L atau P
-  alamat            String
-  asalTK            String?  @map("asal_tk")
-  jalurPendaftaran  String   @default("online") @map("jalur_pendaftaran")
-  statusVerifikasi  String   @default("pending") @map("status_verifikasi") // pending, verified, rejected
-  statusKelulusan   String   @default("pending") @map("status_kelulusan") // pending, diterima, ditolak
-  catatanVerifikasi String?  @map("catatan_verifikasi")
-  nomorPendaftaran  String   @unique @map("nomor_pendaftaran")
+  noPendaftaran     String   @unique @map("no_pendaftaran")
+  nama              String // Nama Lengkap
+  nik               String   @unique // NIK (Nomor Induk Kependudukan)
+  tempatLahir       String   @map("tempat_lahir") // Tempat Lahir
+  tanggalLahir      DateTime @map("tanggal_lahir") // Tanggal Lahir
+  jenisKelamin      String   @map("jenis_kelamin") // Jenis Kelamin (Laki-laki/Perempuan)
+  agama             String // Agama
+  anakKe            String?  @map("anak_ke") // Anak Ke
+  jumlahSaudara     String?  @map("jumlah_saudara") // Jumlah Saudara
+  alamat            String   @db.Text // Alamat Lengkap
+  jalurPendaftaran  String   @map("jalur_pendaftaran") // Jalur Pendaftaran
+  asalSekolah       String?  @map("asal_sekolah") // Asal Sekolah (TK/RA)
+  prestasi          String?  @db.Text // Prestasi (khusus untuk jalur prestasi)
+  statusPendaftaran String   @default("draft") @map("status_pendaftaran") // draft, submit, review, accepted, rejected
+  tanggalDaftar     DateTime @default(now()) @map("tanggal_daftar")
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   // Relations
-  orangTua OrangTua?
+  orangTua OrangTua[]
   dokumen  Dokumen[]
 
   @@map("pendaftar")
@@ -79,13 +41,14 @@ model Pendaftar {
 
 model OrangTua {
   id            String   @id @default(cuid())
-  pendaftarId   String   @unique @map("pendaftar_id")
-  namaAyah      String   @map("nama_ayah")
-  namaIbu       String   @map("nama_ibu")
-  pekerjaanAyah String?  @map("pekerjaan_ayah")
-  pekerjaanIbu  String?  @map("pekerjaan_ibu")
-  noHP          String   @map("no_hp")
-  email         String?
+  pendaftarId   String   @map("pendaftar_id")
+  namaAyah      String   @map("nama_ayah") // Nama Ayah
+  pekerjaanAyah String?  @map("pekerjaan_ayah") // Pekerjaan Ayah
+  namaIbu       String   @map("nama_ibu") // Nama Ibu
+  pekerjaanIbu  String?  @map("pekerjaan_ibu") // Pekerjaan Ibu
+  noTelp        String   @map("no_telp") // Nomor Telepon
+  email         String? // Email
+  alamatOrtu    String?  @map("alamat_ortu") @db.Text // Alamat Orang Tua (jika berbeda dengan anak)
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -98,61 +61,17 @@ model OrangTua {
 model Dokumen {
   id           String   @id @default(cuid())
   pendaftarId  String   @map("pendaftar_id")
-  jenisDokumen String   @map("jenis_dokumen") // akta_kelahiran, kartu_keluarga, ktp_orangtua, foto, ijazah_tk
-  fileUrl      String   @map("file_url")
-  fileName     String   @map("file_name")
-  fileSize     Int      @map("file_size")
-  mimeType     String   @map("mime_type")
+  jenisDokumen String   @map("jenis_dokumen") // foto, ijazah, kk, akta_lahir, sertifikat
+  namaFile     String   @map("nama_file")
+  ukuranFile   Int      @map("ukuran_file") // dalam bytes
+  pathFile     String   @map("path_file")
+  status       String   @default("pending") // pending, approved, rejected
+  keterangan   String?
   createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
   pendaftar Pendaftar @relation(fields: [pendaftarId], references: [id], onDelete: Cascade)
 
   @@map("dokumen")
-}
-
-model Pengumuman {
-  id             String    @id @default(cuid())
-  judul          String
-  isi            String    @db.Text
-  tipe           String    @default("info") // info, warning, success, urgent
-  status         String    @default("draft") // draft, published
-  isPinned       Boolean   @default(false) @map("is_pinned")
-  tanggalPublish DateTime? @map("tanggal_publish")
-  views          Int       @default(0)
-  author         String    @default("Admin PPDB")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
-
-  @@map("pengumuman")
-}
-
-model JadwalPPDB {
-  id             String   @id @default(cuid())
-  namaKegiatan   String   @map("nama_kegiatan")
-  deskripsi      String   @db.Text
-  tanggalMulai   DateTime @map("tanggal_mulai")
-  tanggalSelesai DateTime @map("tanggal_selesai")
-  waktuMulai     String   @map("waktu_mulai")
-  waktuSelesai   String   @map("waktu_selesai")
-  tipe           String   @default("lainnya") // pendaftaran, verifikasi, pengumuman, daftar_ulang, lainnya
-  lokasi         String?
-  catatan        String?  @db.Text
-  status         String   @default("upcoming") // upcoming, active, completed
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  @@map("jadwal_ppdb")
-}
-
-model LogActivity {
-  id        String   @id @default(cuid())
-  userId    String?  @map("user_id")
-  activity  String
-  details   String?  @db.Text
-  ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("log_activity")
 }

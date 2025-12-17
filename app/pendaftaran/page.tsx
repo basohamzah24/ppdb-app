@@ -92,34 +92,8 @@ export default function PendaftaranPage() {
       const result = await response.json();
 
       if (response.ok) {
-        setMessage('Pendaftaran berhasil! Data Anda telah tersimpan.');
-        setMessageType('success');
-        setFormData({
-          // Data Calon Siswa
-          nama: '',
-          nik: '',
-          tempat_lahir: '',
-          tanggal_lahir: '',
-          jenis_kelamin: '',
-          alamat: '',
-          agama: '',
-          anak_ke: '',
-          jumlah_saudara: '',
-          
-          // Data Orang Tua
-          nama_ayah: '',
-          pekerjaan_ayah: '',
-          nama_ibu: '',
-          pekerjaan_ibu: '',
-          alamat_ortu: '',
-          no_telp: '',
-          email: '',
-          
-          // Data Pendaftaran
-          jalur_pendaftaran: '',
-          asal_sekolah: '',
-          prestasi: ''
-        });
+        // Redirect ke halaman success
+        window.location.href = '/success';
       } else {
         setMessage(result.error || 'Terjadi kesalahan saat mendaftar');
         setMessageType('error');

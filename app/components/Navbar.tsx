@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
@@ -29,7 +30,6 @@ const Navbar = () => {
     { name: 'Pendaftaran', href: '/pendaftaran', icon: '📝' },
     { name: 'Informasi PPDB', href: '/informasi', icon: '📚' },
     { name: 'Jadwal', href: '/jadwal', icon: '📅' },
-    { name: 'Admin', href: '/admin', icon: '👤' },
   ];
 
   const isActive = (path: string) => pathname === path;
@@ -43,22 +43,28 @@ const Navbar = () => {
           <div className="flex items-center justify-between h-18 md:h-20">
             {/* Logo / School Name */}
             <Link href="/" className="flex items-center space-x-4 group">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-linear-to-r from-blue-500 to-emerald-500 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-105 shadow-lg">
-                <span className="text-white text-xl md:text-2xl font-bold">SD</span>
+              <div className="w-12 h-12 md:w-14 md:h-14 transition-transform duration-200 group-hover:scale-105">
+                <Image 
+                  src="/logo-sd1.png" 
+                  alt="Logo SD" 
+                  width={56}
+                  height={56}
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div className="hidden sm:block">
                 <div className="text-gray-800 font-bold text-xl md:text-2xl">
                   PPDB Online
                 </div>
                 <div className="text-gray-600 text-sm md:text-base -mt-1">
-                  Sekolah Dasar
+                  UPT SD NEGRI 061 SUMPIRA
                 </div>
               </div>
             </Link>
 
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center space-x-2">
-              {menuItems.slice(0, -1).map((item) => (
+              {menuItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -72,18 +78,6 @@ const Navbar = () => {
                   <span>{item.name}</span>
                 </Link>
               ))}
-              {/* Login Admin as outline button */}
-              <Link
-                href="/admin"
-                className={`px-5 py-3 rounded-full text-base font-medium transition-all duration-200 flex items-center space-x-2 border-2 ${
-                  isActive('/admin')
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-md'
-                    : 'border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white'
-                }`}
-              >
-                <span className="text-lg">👤</span>
-                <span>Login Admin</span>
-              </Link>
             </div>
 
             {/* Mobile Menu Button */}
