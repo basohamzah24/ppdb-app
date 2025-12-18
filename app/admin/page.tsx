@@ -8,16 +8,14 @@ export default function AdminRoot() {
 
   const checkSessionAndRedirect = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/verify')
+      // Cek cookie session langsung di client
+      const hasCookie = document.cookie.includes('admin-session=')
       
-      if (response.ok) {
-        const data = await response.json()
-        if (data.isValid) {
-          router.push('/admin/dashboard')
-        } else {
-          router.push('/admin/login')
-        }
+      if (hasCookie) {
+        console.log('Session found, redirecting to dashboard')
+        router.push('/admin/dashboard')
       } else {
+        console.log('No session found, redirecting to login')
         router.push('/admin/login')
       }
     } catch (error) {

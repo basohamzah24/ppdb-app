@@ -2,11 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { AlertCircle, Eye, EyeOff } from 'lucide-react'
+import Link from 'next/link'
+import { Eye, EyeOff, User, Lock, AlertCircle, ArrowLeft } from 'lucide-react'
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
@@ -14,40 +11,9 @@ export default function AdminLogin() {
     password: ''
   })
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
-
-    try {
-      const response = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        // Redirect ke dashboard - session sudah di-set di cookies oleh server
-        window.location.href = '/admin/dashboard'
-      } else {
-        setError(data.message || 'Login gagal')
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      setError('Terjadi kesalahan pada server')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -59,118 +25,150 @@ export default function AdminLogin() {
     if (error) setError('')
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        // Redirect ke dashboard admin (route group)
+        router.push('/admin/dashboard')
+      } else {
+        setError(result.message || 'Login gagal')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('Terjadi kesalahan sistem')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
+      <div className="max-w-md w-full space-y-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin PPDB</h1>
-          <p className="text-gray-600">UPT SD Negeri 061 Sumpira</p>
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
+            <User className="h-6 w-6 text-white" />
+          </div>
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+            Admin Login
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Masuk ke panel administrasi PPDB
+          </p>
         </div>
 
-        {/* Login Form */}
-        <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader className="text-center space-y-1">
-            <CardTitle className="text-2xl font-bold text-gray-900">Login Admin</CardTitle>
-            <CardDescription className="text-gray-600">
-              Masukkan kredensial untuk mengakses panel admin
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Error Message */}
-              {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
+        {/* Form */}
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          {/* Error Alert */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start space-x-2">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-medium text-red-800">Login Gagal</h3>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          )}
 
-              {/* Username Field */}
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                  Username
-                </Label>
-                <Input
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Username Field */}
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                Username
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
                   id="username"
                   name="username"
                   type="text"
+                  required
                   value={formData.username}
                   onChange={handleInputChange}
-                  placeholder="Masukkan username admin"
-                  required
-                  className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  disabled={isLoading}
+                  className="appearance-none relative block w-full pl-10 pr-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="Masukkan username"
                 />
               </div>
+            </div>
 
-              {/* Password Field */}
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Masukkan password"
-                    required
-                    className="w-full h-12 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
-                    disabled={isLoading}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
                 </div>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="appearance-none relative block w-full pl-10 pr-10 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="Masukkan password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
               </div>
+            </div>
 
-              {/* Submit Button */}
-              <Button
+            {/* Submit Button */}
+            <div>
+              <button
                 type="submit"
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
-                disabled={isLoading || !formData.username || !formData.password}
+                disabled={isLoading}
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Memproses...</span>
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Memproses...
                   </div>
                 ) : (
-                  'Masuk Admin'
+                  'Masuk'
                 )}
-              </Button>
-            </form>
-
-            {/* Footer */}
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-500">
-                Lupa password? Hubungi administrator sistem
-              </p>
+              </button>
             </div>
-          </CardContent>
-        </Card>
+          </form>
+        </div>
 
         {/* Back to Home */}
-        <div className="text-center mt-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/')}
-            className="text-gray-600 hover:text-gray-900 transition-colors"
+        <div className="text-center">
+          <Link 
+            href="/"
+            className="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors"
           >
-            ← Kembali ke Beranda
-          </Button>
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Kembali ke Beranda
+          </Link>
         </div>
       </div>
     </div>

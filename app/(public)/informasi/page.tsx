@@ -1,9 +1,8 @@
-import Navbar from '../components/Navbar';
+
 
 export default function InformasiPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-green-50">
-      <Navbar />
       
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">

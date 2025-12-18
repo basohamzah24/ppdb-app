@@ -108,3 +108,50 @@ model AdminSession {
 
   @@map("admin_session")
 }
+
+// Model untuk pengaturan PPDB yang dinamis
+model PPDBSettings {
+  id                String   @id @default(cuid())
+  tahunAjaran       String   @map("tahun_ajaran") // 2025/2026
+  statusPendaftaran String   @default("tutup") @map("status_pendaftaran") // buka, tutup
+  tanggalBuka       DateTime @map("tanggal_buka")
+  tanggalTutup      DateTime @map("tanggal_tutup")
+  kuotaSiswa        Int      @default(0) @map("kuota_siswa")
+  persyaratan       String[] @default([]) // Array of requirements
+  alurPendaftaran   String[] @default([]) @map("alur_pendaftaran") // Array of steps
+  informasiTambahan String?  @map("informasi_tambahan") @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("ppdb_settings")
+}
+
+// Model untuk konten website yang dinamis
+model Content {
+  id        String   @id @default(cuid())
+  key       String   @unique // hero_title, hero_subtitle, announcement_main, etc
+  content   String   @db.Text
+  type      String   @default("text") // text, html, json
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("content")
+}
+
+// Model untuk pengumuman
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  content     String    @db.Text
+  type        String    @default("info") // info, warning, success, error
+  isPublished Boolean   @default(false) @map("is_published")
+  publishDate DateTime? @map("publish_date")
+  expiryDate  DateTime? @map("expiry_date")
+  priority    Int       @default(0) // Higher number = higher priority
+  createdBy   String    @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("announcement")
+}
