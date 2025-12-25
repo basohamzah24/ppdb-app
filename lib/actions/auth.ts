@@ -26,7 +26,7 @@ export async function loginAction(formData: FormData): Promise<void> {
     const admin = await prisma.admin.findUnique({ where: { username } })
     
     // Check if admin exists and password matches (simple comparison for now)
-    if (admin && admin.passwordHash === password) {
+    if (admin && admin.password === password) {
       const cookieStore = await cookies()
       cookieStore.set('admin-session', 'admin-authenticated', {
         httpOnly: true,
@@ -130,7 +130,7 @@ export async function loginAdmin(username: string, password: string): Promise<Ad
     const admin = await prisma.admin.findUnique({ where: { username } })
     if (!admin) return null
 
-    const isPasswordValid = await bcrypt.compare(password, admin.passwordHash)
+    const isPasswordValid = await bcrypt.compare(password, admin.password)
     if (!isPasswordValid) return null
 
     return {

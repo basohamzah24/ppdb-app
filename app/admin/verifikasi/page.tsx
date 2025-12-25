@@ -490,7 +490,7 @@ export default function AdminVerifikasi() {
                   )}
                 </div>
               </div>
-              <div className="w-full sm:w-64">
+              <div className="w-full sm:w-64 relative">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
                     <Filter className="h-4 w-4 mr-2" />
@@ -521,7 +521,7 @@ export default function AdminVerifikasi() {
                 <span className="text-sm font-medium text-blue-700">
                   {selectedItems.size} item dipilih
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 relative">
                   <Select value={bulkAction} onValueChange={setBulkAction}>
                     <SelectTrigger className="w-40">
                       <SelectValue placeholder="Pilih aksi..." />

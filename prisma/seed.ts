@@ -15,16 +15,18 @@ async function main() {
     // Use modern upsert pattern instead of delete + create
     console.log('📝 Upserting admin user...')
     
-    // Create or update Admin using passwordHash field
+    // Create or update Admin using password field
     const admin = await prisma.admin.upsert({
       where: { username: 'admin' },
       update: {
-        passwordHash: 'admin123', // Simple password matching our auth system
+        password: 'admin123', // Simple password matching our auth system
+        nama: 'Administrator',
         role: 'admin',
       },
       create: {
         username: 'admin',
-        passwordHash: 'admin123', // Simple password matching our auth system
+        password: 'admin123', // Simple password matching our auth system
+        nama: 'Administrator',
         role: 'admin',
       }
     })
@@ -34,41 +36,43 @@ async function main() {
     const samplePendaftar = [
       {
         nik: '3201234567890123',
-        namaLengkap: 'Ahmad Fauzi',
+        nama: 'Ahmad Fauzi',
         tempatLahir: 'Luwu Utara',
         tanggalLahir: new Date('2017-05-15'),
         jenisKelamin: 'L',
+        agama: 'Islam',
         alamat: 'Jl. Merdeka No. 123, Sumpira, Luwu Utara',
-        asalTK: 'TK Pertiwi Sumpira',
-        statusVerifikasi: 'verified',
-        statusKelulusan: 'diterima',
-        nomorPendaftaran: 'PPDB2024001',
+        jalurPendaftaran: 'reguler',
+        asalSekolah: 'TK Pertiwi Sumpira',
+        statusPendaftaran: 'submit',
+        noPendaftaran: 'PPDB2024001',
         orangTua: {
           namaAyah: 'Budi Santoso',
           namaIbu: 'Siti Nurhaliza',
           pekerjaanAyah: 'Petani',
           pekerjaanIbu: 'Ibu Rumah Tangga',
-          noHP: '081234567890',
+          noTelp: '081234567890',
           email: 'budi.santoso@email.com'
         }
       },
       {
         nik: '3201234567890124',
-        namaLengkap: 'Siti Aminah',
+        nama: 'Siti Aminah',
         tempatLahir: 'Luwu Utara',
         tanggalLahir: new Date('2017-08-22'),
         jenisKelamin: 'P',
+        agama: 'Islam',
         alamat: 'Jl. Sudirman No. 45, Sumpira, Luwu Utara',
-        asalTK: 'TK Dharma Wanita',
-        statusVerifikasi: 'pending',
-        statusKelulusan: 'pending',
-        nomorPendaftaran: 'PPDB2024002',
+        jalurPendaftaran: 'reguler',
+        asalSekolah: 'TK Dharma Wanita',
+        statusPendaftaran: 'submit',
+        noPendaftaran: 'PPDB2024002',
         orangTua: {
           namaAyah: 'Ahmad Yusuf',
           namaIbu: 'Fatimah Zahra',
           pekerjaanAyah: 'Wiraswasta',
           pekerjaanIbu: 'Guru',
-          noHP: '081234567891',
+          noTelp: '081234567891',
           email: 'ahmad.yusuf@email.com'
         }
       }
@@ -86,21 +90,8 @@ async function main() {
         }
       })
 
-      console.log(`👶 Created pendaftar: ${pendaftar.namaLengkap}`)
+      console.log(`👶 Created pendaftar: ${pendaftar.nama}`)
     }
-
-    // Create Sample Pengumuman
-    await prisma.pengumuman.create({
-      data: {
-        judul: 'Pembukaan Pendaftaran PPDB Online 2024',
-        isi: 'Dengan hormat, kami informasikan bahwa pendaftaran PPDB Online untuk tahun ajaran 2024/2025 telah dibuka.',
-        tipe: 'info',
-        status: 'published',
-        isPinned: true,
-        tanggalPublish: new Date(),
-        author: 'Admin PPDB'
-      }
-    })
 
     console.log('✅ Database seeding completed successfully!')
   } catch (error) {

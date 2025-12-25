@@ -97,19 +97,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate nomor pendaftaran
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const noPendaftaran = `PPDB-${year}${month}${day}-${Date.now().toString().slice(-6)}`;
+
     // Insert data pendaftar menggunakan Prisma
     const newPendaftar = await prisma.pendaftar.create({
       data: {
+        noPendaftaran,
         nama,
         nik,
-        tempat_lahir,
-        tanggal_lahir: birthDate,
-        jenis_kelamin,
+        tempatLahir: tempat_lahir,
+        tanggalLahir: birthDate,
+        jenisKelamin: jenis_kelamin,
         alamat,
-        nama_ayah,
-        nama_ibu,
-        no_telp,
-        email: email || null
+        agama: 'Islam', // default value
+        jalurPendaftaran: 'regular', // default value
+        statusPendaftaran: 'draft',
+        orangTua: {
+          create: {
+            namaAyah: nama_ayah,
+            namaIbu: nama_ibu,
+            noTelp: no_telp,
+            email: email || null
+          }
+        }
+      },
+      include: {
+        orangTua: true
       }
     });
       
@@ -117,17 +135,16 @@ export async function POST(request: NextRequest) {
       message: 'Pendaftaran berhasil',
       data: {
         id: newPendaftar.id,
+        noPendaftaran: newPendaftar.noPendaftaran,
         nama: newPendaftar.nama,
         nik: newPendaftar.nik,
-        tempat_lahir: newPendaftar.tempat_lahir,
-        tanggal_lahir: newPendaftar.tanggal_lahir,
-        jenis_kelamin: newPendaftar.jenis_kelamin,
+        tempatLahir: newPendaftar.tempatLahir,
+        tanggalLahir: newPendaftar.tanggalLahir,
+        jenisKelamin: newPendaftar.jenisKelamin,
         alamat: newPendaftar.alamat,
-        nama_ayah: newPendaftar.nama_ayah,
-        nama_ibu: newPendaftar.nama_ibu,
-        no_telp: newPendaftar.no_telp,
-        email: newPendaftar.email,
-        created_at: newPendaftar.created_at
+        orangTua: newPendaftar.orangTua,
+        createdAt: newPendaftar.createdAt,
+        updatedAt: newPendaftar.updatedAt
       }
     }, { status: 201 });
 
@@ -163,7 +180,7 @@ export async function GET() {
   try {
     const pendaftarList = await prisma.pendaftar.findMany({
       orderBy: {
-        created_at: 'desc'
+        createdAt: 'desc'
       }
     });
 

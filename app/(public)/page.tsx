@@ -60,7 +60,6 @@ export default async function Home() {
       visi: publicData.content.visiSekolah,
       misi: publicData.content.misiSekolah
     },
-    announcement: publicData.announcements.length > 0 ? publicData.announcements[0].content : '',
     ppdbSettings: publicData.ppdb
   }
 

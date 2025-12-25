@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
       { 
         success: false, 
         error: 'Gagal mengambil data pendaftar',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
@@ -173,7 +173,7 @@ export async function PUT(request: NextRequest) {
       { 
         success: false, 
         error: 'Gagal mengupdate status pendaftar',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
@@ -214,7 +214,7 @@ export async function DELETE(request: NextRequest) {
       { 
         success: false, 
         error: 'Gagal menghapus pendaftar',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )

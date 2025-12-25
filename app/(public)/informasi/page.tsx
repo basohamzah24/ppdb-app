@@ -64,7 +64,7 @@ export default async function InformasiPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-blue-800 mb-4">Dokumen yang Diperlukan:</h3>
                 <ul className="space-y-3 text-gray-700">
-                  {data.ppdb?.persyaratan?.map((item, index) => (
+                  {data.ppdb?.persyaratan?.map((item: string, index: number) => (
                     <li key={index} className="flex items-start">
                       <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 shrink-0"></span>
                       <span>{item}</span>
@@ -103,7 +103,7 @@ export default async function InformasiPage() {
                 Alur Pendaftaran
               </h2>
               <div className="space-y-4">
-                {data.ppdb.alurPendaftaran.map((item, index) => (
+                {data.ppdb.alurPendaftaran.map((item: string, index: number) => (
                   <div key={index} className="flex items-start space-x-4 p-4 bg-green-50 rounded-xl">
                     <div className="shrink-0 w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">
                       {index + 1}

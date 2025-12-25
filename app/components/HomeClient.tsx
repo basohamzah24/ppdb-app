@@ -24,7 +24,6 @@ interface PageData {
     visi: string
     misi: string
   }
-  announcement: string
   ppdbSettings: {
     tahunAjaran: string
     statusPendaftaran: string
@@ -497,18 +496,18 @@ export default function HomeClient({ data }: { data: PageData }) {
                 </div>
               )}
               
-              {activeTab === 'info' && (
+              {activeTab === 'info' && liveData.ppdbSettings && (
                 <div className="space-y-4">
                   <div>
                     <h3 className="font-semibold text-lg mb-2">Informasi Umum:</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p><strong>Tahun Ajaran:</strong> {data.ppdbSettings.tahunAjaran}</p>
-                        <p><strong>Kuota Siswa:</strong> {data.ppdbSettings.kuotaSiswa} siswa</p>
+                        <p><strong>Tahun Ajaran:</strong> {liveData.ppdbSettings.tahunAjaran}</p>
+                        <p><strong>Kuota Siswa:</strong> {liveData.ppdbSettings.kuotaSiswa} siswa</p>
                       </div>
                       <div>
-                        <p><strong>Buka Pendaftaran:</strong> {new Date(data.ppdbSettings.tanggalBuka).toLocaleString('id-ID')}</p>
-                        <p><strong>Tutup Pendaftaran:</strong> {new Date(data.ppdbSettings.tanggalTutup).toLocaleString('id-ID')}</p>
+                        <p><strong>Buka Pendaftaran:</strong> {new Date(liveData.ppdbSettings.tanggalBuka).toLocaleString('id-ID')}</p>
+                        <p><strong>Tutup Pendaftaran:</strong> {new Date(liveData.ppdbSettings.tanggalTutup).toLocaleString('id-ID')}</p>
                       </div>
                     </div>
                   </div>

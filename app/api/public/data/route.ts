@@ -7,8 +7,8 @@ export async function GET() {
   try {
     console.log('📡 API public/data dipanggil - Mengambil data terbaru dari database...')
     
-    // Ambil data PPDB settings, konten, dan pengumuman secara paralel
-    const [ppdbSettings, contents, announcements] = await Promise.all([
+    // Ambil data PPDB settings dan konten secara paralel
+    const [ppdbSettings, contents] = await Promise.all([
       // PPDB Settings
       prisma.pPDBSettings.findFirst({
         orderBy: { updatedAt: 'desc' }
@@ -17,29 +17,12 @@ export async function GET() {
       // Content
       prisma.content.findMany({
         where: { isActive: true }
-      }),
-      
-      // Announcements yang aktif
-      prisma.announcement.findMany({
-        where: {
-          isPublished: true,
-          OR: [
-            { expiryDate: null },
-            { expiryDate: { gte: new Date() } }
-          ]
-        },
-        orderBy: [
-          { priority: 'desc' },
-          { publishDate: 'desc' }
-        ],
-        take: 5 // Ambil maksimal 5 pengumuman
       })
     ])
     
     console.log('✅ Data berhasil diambil dari database:', {
       ppdbSettings: ppdbSettings ? 'Found' : 'Not found',
-      contents: contents.length,
-      announcements: announcements.length
+      contents: contents.length
     })
 
     // Konversi array content menjadi object untuk akses mudah
@@ -72,16 +55,7 @@ export async function GET() {
         contactAddress: contentMap.contact_address || 'Jalan Trans Sumpira, Kec. Baebunta, Kab. Luwu Utara, Sulawesi Selatan',
         contactPhone: contentMap.contact_phone || '(0473) 123456',
         contactEmail: contentMap.contact_email || 'info@uptsdn061sumpira.sch.id'
-      },
-      
-      announcements: announcements.map(ann => ({
-        id: ann.id,
-        title: ann.title,
-        content: ann.content,
-        type: ann.type,
-        publishDate: ann.publishDate,
-        priority: ann.priority
-      }))
+      }
     }
 
     return NextResponse.json({
@@ -112,8 +86,7 @@ export async function GET() {
         contactAddress: 'Jalan Trans Sumpira, Kec. Baebunta',
         contactPhone: '(0473) 123456',
         contactEmail: 'info@uptsdn061sumpira.sch.id'
-      },
-      announcements: []
+      }
     }
     
     return NextResponse.json({

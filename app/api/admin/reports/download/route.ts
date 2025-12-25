@@ -13,8 +13,7 @@ export async function GET() {
     const [
       totalPendaftar,
       pendaftarPerJalur,
-      pendaftarPerStatus,
-      dokumenStats
+      pendaftarPerStatus
     ] = await Promise.all([
       // Total pendaftar
       prisma.pendaftar.count(),
@@ -30,14 +29,6 @@ export async function GET() {
       // Pendaftar per status
       prisma.pendaftar.groupBy({
         by: ['statusPendaftaran'],
-        _count: {
-          id: true
-        }
-      }),
-      
-      // Stats dokumen
-      prisma.dokumen.groupBy({
-        by: ['jenisDokumen'],
         _count: {
           id: true
         }
@@ -68,11 +59,6 @@ export async function GET() {
             noTelp: true,
             email: true
           }
-        },
-        _count: {
-          select: {
-            dokumen: true
-          }
         }
       },
       orderBy: {
@@ -101,15 +87,11 @@ export async function GET() {
         'Nama Ibu',
         'No Telepon',
         'Email',
-        'Tanggal Daftar',
-        'Jumlah Dokumen',
-        'Status Dokumen'
+        'Tanggal Daftar'
       ],
       // Data rows
       ...pendaftarDetails.map(pendaftar => {
         const orangTua = pendaftar.orangTua[0]
-        const statusDokumen = pendaftar._count.dokumen >= 3 ? 'Lengkap' : 
-                              pendaftar._count.dokumen > 0 ? 'Belum Lengkap' : 'Belum Upload'
         
         return [
           pendaftar.noPendaftaran,
@@ -127,9 +109,7 @@ export async function GET() {
           orangTua?.namaIbu || '-',
           orangTua?.noTelp || '-',
           orangTua?.email || '-',
-          pendaftar.tanggalDaftar.toISOString().split('T')[0],
-          pendaftar._count.dokumen,
-          statusDokumen
+          pendaftar.tanggalDaftar.toISOString().split('T')[0]
         ]
       })
     ]
@@ -155,9 +135,7 @@ export async function GET() {
       { wch: 20 }, // Nama Ibu
       { wch: 15 }, // No Telepon
       { wch: 25 }, // Email
-      { wch: 12 }, // Tanggal Daftar
-      { wch: 12 }, // Jumlah Dokumen
-      { wch: 15 }  // Status Dokumen
+      { wch: 12 }  // Tanggal Daftar
     ]
     ws['!cols'] = colWidths
 
@@ -191,12 +169,6 @@ export async function GET() {
         status._count.id
       ]),
       [''],
-      ['Statistik Dokumen'],
-      ...dokumenStats.map(dok => [
-        dok.jenisDokumen.charAt(0).toUpperCase() + dok.jenisDokumen.slice(1),
-        dok._count.id
-      ]),
-      [''],
       ['Tanggal Generate', new Date().toLocaleString('id-ID')]
     ]
 
@@ -226,7 +198,7 @@ export async function GET() {
   } catch (error) {
     console.error('❌ Error generating report:', error)
     return NextResponse.json(
-      { error: 'Gagal membuat laporan', details: error.message },
+      { error: 'Gagal membuat laporan', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   } finally {
