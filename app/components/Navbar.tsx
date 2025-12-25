@@ -4,11 +4,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { usePPDBStatus } from '../../hooks/usePPDBStatus';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const ppdbStatus = usePPDBStatus();
 
   // Handle scroll effect
   useEffect(() => {
@@ -64,6 +66,20 @@ const Navbar = () => {
 
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center space-x-2">
+              {/* PPDB Status Badge */}
+              {!ppdbStatus.isLoading && (
+                <div className={`mr-3 px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1 ${
+                  ppdbStatus.isOpen 
+                    ? 'bg-green-500 text-white animate-pulse' 
+                    : 'bg-red-500 text-white'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full ${
+                    ppdbStatus.isOpen ? 'bg-green-200' : 'bg-red-200'
+                  }`}></div>
+                  <span>PPDB {ppdbStatus.isOpen ? 'BUKA' : 'TUTUP'}</span>
+                </div>
+              )}
+              
               {menuItems.map((item) => (
                 <Link
                   key={item.href}

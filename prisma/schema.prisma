@@ -28,13 +28,29 @@ model Pendaftar {
   asalSekolah       String?  @map("asal_sekolah") // Asal Sekolah (TK/RA)
   prestasi          String?  @db.Text // Prestasi (khusus untuk jalur prestasi)
   statusPendaftaran String   @default("draft") @map("status_pendaftaran") // draft, submit, review, accepted, rejected
-  tanggalDaftar     DateTime @default(now()) @map("tanggal_daftar")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Dokumen fields
+  aktaKelahiran_nama   String? @map("akta_kelahiran_nama")
+  aktaKelahiran_path   String? @map("akta_kelahiran_path")
+  aktaKelahiran_ukuran Int?    @map("akta_kelahiran_ukuran")
+  aktaKelahiran_status String? @default("pending") @map("akta_kelahiran_status") // pending, approved, rejected
+
+  kartuKeluarga_nama   String? @map("kartu_keluarga_nama")
+  kartuKeluarga_path   String? @map("kartu_keluarga_path")
+  kartuKeluarga_ukuran Int?    @map("kartu_keluarga_ukuran")
+  kartuKeluarga_status String? @default("pending") @map("kartu_keluarga_status")
+
+  fotoSiswa_nama   String? @map("foto_siswa_nama")
+  fotoSiswa_path   String? @map("foto_siswa_path")
+  fotoSiswa_ukuran Int?    @map("foto_siswa_ukuran")
+  fotoSiswa_status String? @default("pending") @map("foto_siswa_status")
+
+  tanggalDaftar DateTime @default(now()) @map("tanggal_daftar")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   // Relations
   orangTua OrangTua[]
-  dokumen  Dokumen[]
 
   @@map("pendaftar")
 }
@@ -56,24 +72,6 @@ model OrangTua {
   pendaftar Pendaftar @relation(fields: [pendaftarId], references: [id], onDelete: Cascade)
 
   @@map("orang_tua")
-}
-
-model Dokumen {
-  id           String   @id @default(cuid())
-  pendaftarId  String   @map("pendaftar_id")
-  jenisDokumen String   @map("jenis_dokumen") // foto, ijazah, kk, akta_lahir, sertifikat
-  namaFile     String   @map("nama_file")
-  ukuranFile   Int      @map("ukuran_file") // dalam bytes
-  pathFile     String   @map("path_file")
-  status       String   @default("pending") // pending, approved, rejected
-  keterangan   String?
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  pendaftar Pendaftar @relation(fields: [pendaftarId], references: [id], onDelete: Cascade)
-
-  @@map("dokumen")
 }
 
 // Model untuk admin system
@@ -154,4 +152,24 @@ model Announcement {
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("announcement")
+}
+
+// Model untuk jadwal PPDB
+model Schedule {
+  id          String    @id @default(cuid())
+  title       String // Judul kegiatan (misal: "Pendaftaran Online", "Verifikasi Berkas")
+  description String?   @db.Text // Deskripsi detail kegiatan
+  startDate   DateTime  @map("start_date") // Tanggal mulai
+  endDate     DateTime? @map("end_date") // Tanggal selesai (opsional)
+  startTime   String?   @map("start_time") // Jam mulai (format HH:mm)
+  endTime     String?   @map("end_time") // Jam selesai (format HH:mm)
+  location    String? // Lokasi kegiatan
+  type        String    @default("regular") // regular, important, deadline
+  isActive    Boolean   @default(true) @map("is_active")
+  order       Int       @default(0) // Urutan tampil
+  createdBy   String    @map("created_by") // ID admin yang membuat
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("schedule")
 }

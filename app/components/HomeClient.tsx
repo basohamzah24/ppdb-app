@@ -42,13 +42,62 @@ export default function HomeClient({ data }: { data: PageData }) {
   const [activeTab, setActiveTab] = useState('persyaratan')
   const [isLoading, setIsLoading] = useState(true)
   const [showContent, setShowContent] = useState(false)
+  const [liveData, setLiveData] = useState<PageData>(data)
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [isClient, setIsClient] = useState(false)
 
   // Cek apakah pendaftaran sedang buka
-  const isPendaftaranOpen = data.ppdbSettings ? 
-    data.ppdbSettings.statusPendaftaran === 'buka' &&
-    new Date() >= new Date(data.ppdbSettings.tanggalBuka) &&
-    new Date() <= new Date(data.ppdbSettings.tanggalTutup)
+  const isPendaftaranOpen = liveData.ppdbSettings ? 
+    liveData.ppdbSettings.statusPendaftaran === 'buka'
     : false
+
+  // Debug log untuk troubleshooting
+  console.log('PPDB Status Debug:', {
+    ppdbSettings: liveData.ppdbSettings,
+    statusPendaftaran: liveData.ppdbSettings?.statusPendaftaran,
+    isPendaftaranOpen,
+    tanggalBuka: liveData.ppdbSettings?.tanggalBuka,
+    tanggalTutup: liveData.ppdbSettings?.tanggalTutup,
+    sekarang: new Date()
+  })
+
+  // Fungsi untuk mengambil data terbaru
+  const fetchLatestData = async () => {
+    try {
+      const response = await fetch('/api/public/data', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          const newPageData = {
+            ...liveData,
+            ppdbSettings: result.data.ppdb,
+            hero: {
+              title: result.data.content.heroTitle || liveData.hero.title,
+              subtitle: result.data.content.heroSubtitle || liveData.hero.subtitle,
+              description: result.data.content.heroDescription || liveData.hero.description
+            }
+          }
+          
+          // Update data jika ada perubahan
+          if (JSON.stringify(liveData.ppdbSettings) !== JSON.stringify(result.data.ppdb)) {
+            console.log('🔄 Status PPDB berubah - updating display...')
+            setLiveData(newPageData)
+            setLastUpdate(new Date())
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching latest data:', error)
+    }
+  }
 
   // Animasi loading saat komponen dimuat
   useEffect(() => {
@@ -58,6 +107,30 @@ export default function HomeClient({ data }: { data: PageData }) {
     }, 1500)
 
     return () => clearTimeout(timer)
+  }, [])
+
+  // Effect untuk set client state dan initial lastUpdate
+  useEffect(() => {
+    setIsClient(true)
+    setLastUpdate(new Date())
+  }, [])
+
+  // Effect untuk polling data setiap 30 detik
+  useEffect(() => {
+    // Fetch pertama kali setelah loading selesai
+    const initialTimer = setTimeout(() => {
+      fetchLatestData()
+    }, 2000)
+
+    // Set interval untuk polling setiap 30 detik
+    const interval = setInterval(() => {
+      fetchLatestData()
+    }, 30000) // 30 detik
+
+    return () => {
+      clearTimeout(initialTimer)
+      clearInterval(interval)
+    }
   }, [])
 
   return (
@@ -106,28 +179,96 @@ export default function HomeClient({ data }: { data: PageData }) {
         {/* Content */}
         <div className="absolute inset-0 flex items-center justify-center text-center px-4">
           <div className="max-w-4xl text-white space-y-6">
+            {/* Status PPDB Badge */}
+            <div className="animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+              {liveData.ppdbSettings && (
+                <div className={`inline-flex items-center px-6 py-3 rounded-full text-lg font-bold mb-4 ${
+                  isPendaftaranOpen 
+                    ? 'bg-green-500 text-white shadow-lg animate-pulse-gentle' 
+                    : 'bg-red-500 text-white shadow-lg'
+                }`}>
+                  <div className={`w-3 h-3 rounded-full mr-3 ${
+                    isPendaftaranOpen ? 'bg-green-200 animate-ping' : 'bg-red-200'
+                  }`}></div>
+                  <span className="mr-2">{isPendaftaranOpen ? '🟢' : '🔴'}</span>
+                  PPDB {liveData.ppdbSettings.statusPendaftaran.toUpperCase()}
+                  {isPendaftaranOpen && liveData.ppdbSettings.tanggalTutup && (
+                    <span className="ml-2 text-sm font-normal">
+                      • Status: {liveData.ppdbSettings.statusPendaftaran}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            
             <h1 className="text-4xl md:text-6xl font-bold animate-fadeIn" style={{ animationDelay: '0.3s' }}>
-              {data.hero.title}
+              {liveData.hero.title}
             </h1>
             
             <p className="text-xl md:text-2xl font-light animate-fadeIn" style={{ animationDelay: '0.6s' }}>
-              {data.hero.subtitle}
+              {liveData.hero.subtitle}
             </p>
             
             <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed animate-fadeIn" style={{ animationDelay: '0.9s' }}>
-              {data.hero.description}
+              {liveData.hero.description}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8 animate-fadeIn" style={{ animationDelay: '1.2s' }}>
+              {liveData.ppdbSettings && (
+                <div className="text-center mb-4">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 mb-4">
+                    <div className="flex justify-between items-center text-sm mb-2">
+                      <span>Tahun Ajaran:</span>
+                      <span className="font-bold">{liveData.ppdbSettings.tahunAjaran}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm mb-2">
+                      <span>Kuota Siswa:</span>
+                      <span className="font-bold">{liveData.ppdbSettings.kuotaSiswa} siswa</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span>Status:</span>
+                      <span className={`font-bold ${
+                        liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? 'text-green-300' : 'text-red-300'
+                      }`}>
+                        {liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? 'DIBUKA' : 'DITUTUP'}
+                      </span>
+                    </div>
+                    {liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' && liveData.ppdbSettings.tanggalTutup && (
+                      <div className="mt-2 pt-2 border-t border-white/30">
+                        <div className="text-xs text-gray-200">
+                          Tutup: {new Date(liveData.ppdbSettings.tanggalTutup).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'long', 
+                            year: 'numeric'
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               <Link
-                href="/daftar"
-                className={`px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 ${
-                  isPendaftaranOpen
-                    ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl'
-                    : 'bg-gray-600 cursor-not-allowed text-gray-300'
+                href={liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? "/pendaftaran" : "#"}
+                className={`px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 ${
+                  liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka'
+                    ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl animate-pulse-gentle'
+                    : 'bg-red-600 cursor-not-allowed text-white'
                 }`}
               >
-                {isPendaftaranOpen ? 'Daftar Sekarang' : 'Pendaftaran Tutup'}
+                {liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? (
+                  <>
+                    <span>🚀</span>
+                    Daftar Sekarang
+                    <span className="bg-green-800 px-2 py-1 rounded text-xs">BUKA</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🔒</span>
+                    Pendaftaran Ditutup
+                    <span className="bg-red-800 px-2 py-1 rounded text-xs">TUTUP</span>
+                  </>
+                )}
               </Link>
               
               <button
@@ -141,12 +282,159 @@ export default function HomeClient({ data }: { data: PageData }) {
         </div>
       </section>
 
+      {/* ================= STATUS PPDB SECTION ================= */}
+      {liveData.ppdbSettings && (
+        <section className={`py-16 ${ 
+          liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka'
+            ? 'bg-gradient-to-r from-green-50 to-emerald-50' 
+            : 'bg-gradient-to-r from-red-50 to-pink-50'
+        }`}>
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <div className={`inline-flex items-center px-8 py-4 rounded-full text-2xl font-bold mb-6 ${
+                liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka'
+                  ? 'bg-green-500 text-white shadow-xl' 
+                  : 'bg-red-500 text-white shadow-xl'
+              }`}>
+                <span className="mr-3 text-3xl">
+                  {liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? '🟢' : '🔴'}
+                </span>
+                PPDB {liveData.ppdbSettings?.statusPendaftaran?.toUpperCase() || 'TUTUP'}
+                <span className="ml-3 text-3xl">
+                  {liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? '🚀' : '🔒'}
+                </span>
+              </div>
+              
+              <h2 className="text-4xl font-bold text-gray-800 mb-4">
+                Status Penerimaan Peserta Didik Baru
+              </h2>
+              
+              <p className="text-xl text-gray-600 mb-4">
+                Tahun Ajaran {liveData.ppdbSettings.tahunAjaran}
+              </p>
+              
+              {/* Real-time indicator */}
+              <div className="text-sm text-gray-500 mb-8">
+                <span className="inline-flex items-center">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
+                  Update terakhir: {isClient && lastUpdate ? lastUpdate.toLocaleTimeString('id-ID') : '--:--:--'}
+                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs">LIVE</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Status Card */}
+              <div className={`bg-white rounded-xl p-6 shadow-lg border-4 ${
+                liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? 'border-green-200' : 'border-red-200'
+              }`}>
+                <div className="text-center">
+                  <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-4 ${
+                    liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? 'bg-green-100' : 'bg-red-100'
+                  }`}>
+                    {liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? '✅' : '❌'}
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Status Pendaftaran</h3>
+                  <p className={`text-3xl font-bold ${
+                    liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? 'DIBUKA' : 'DITUTUP'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tanggal Card */}
+              <div className="bg-white rounded-xl p-6 shadow-lg">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-100 mx-auto rounded-full flex items-center justify-center text-3xl mb-4">
+                    📅
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Periode Pendaftaran</h3>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">
+                      <strong>Buka:</strong><br/>
+                      {liveData.ppdbSettings.tanggalBuka ? new Date(liveData.ppdbSettings.tanggalBuka).toLocaleDateString('id-ID', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      }) : 'Belum ditentukan'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <strong>Tutup:</strong><br/>
+                      {liveData.ppdbSettings.tanggalTutup ? new Date(liveData.ppdbSettings.tanggalTutup).toLocaleDateString('id-ID', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      }) : 'Belum ditentukan'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Kuota Card */}
+              <div className="bg-white rounded-xl p-6 shadow-lg">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-purple-100 mx-auto rounded-full flex items-center justify-center text-3xl mb-4">
+                    👥
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Kuota Siswa</h3>
+                  <p className="text-4xl font-bold text-purple-600">
+                    {liveData.ppdbSettings.kuotaSiswa}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">siswa</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Countdown atau Pesan */}
+            <div className="text-center mt-12">
+              {liveData.ppdbSettings && liveData.ppdbSettings.statusPendaftaran === 'buka' ? (
+                <div className="bg-green-500 text-white rounded-xl p-6 max-w-2xl mx-auto">
+                  <h3 className="text-2xl font-bold mb-2">🎉 Pendaftaran Dibuka!</h3>
+                  <p className="text-lg mb-4">
+                    PPDB untuk tahun ajaran {liveData.ppdbSettings.tahunAjaran} sedang dibuka.
+                  </p>
+                  {liveData.ppdbSettings.tanggalTutup && (
+                    <p className="text-sm mb-4">
+                      Tutup pada: {new Date(liveData.ppdbSettings.tanggalTutup).toLocaleDateString('id-ID', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  )}
+                  <Link
+                    href="/pendaftaran"
+                    className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+                  >
+                    Daftar Sekarang 🚀
+                  </Link>
+                </div>
+              ) : (
+                <div className="bg-red-500 text-white rounded-xl p-6 max-w-2xl mx-auto">
+                  <h3 className="text-2xl font-bold mb-2">🔒 Pendaftaran Ditutup</h3>
+                  <p className="text-lg mb-4">
+                    Pendaftaran untuk tahun ajaran {liveData.ppdbSettings?.tahunAjaran || '2025/2026'} saat ini ditutup.
+                  </p>
+                  <p className="text-sm">
+                    Pantau terus website ini untuk informasi pendaftaran periode berikutnya.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Modal Info PPDB */}
-      {showInfo && data.ppdbSettings && (
+      {showInfo && liveData.ppdbSettings && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
           <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Informasi PPDB {data.ppdbSettings.tahunAjaran}</h2>
+              <h2 className="text-2xl font-bold">Informasi PPDB {liveData.ppdbSettings.tahunAjaran}</h2>
               <button
                 onClick={() => setShowInfo(false)}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -183,7 +471,7 @@ export default function HomeClient({ data }: { data: PageData }) {
                 <div>
                   <h3 className="font-semibold text-lg mb-3">Persyaratan Pendaftaran:</h3>
                   <ul className="space-y-2">
-                    {data.ppdbSettings.persyaratan.map((item, index) => (
+                    {liveData.ppdbSettings.persyaratan.map((item, index) => (
                       <li key={index} className="flex items-start">
                         <span className="text-blue-500 mr-2">•</span>
                         <span>{item}</span>
@@ -197,7 +485,7 @@ export default function HomeClient({ data }: { data: PageData }) {
                 <div>
                   <h3 className="font-semibold text-lg mb-3">Alur Pendaftaran:</h3>
                   <ol className="space-y-2">
-                    {data.ppdbSettings.alurPendaftaran.map((item, index) => (
+                    {liveData.ppdbSettings.alurPendaftaran.map((item, index) => (
                       <li key={index} className="flex items-start">
                         <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm mr-3 mt-0.5">
                           {index + 1}
@@ -225,10 +513,10 @@ export default function HomeClient({ data }: { data: PageData }) {
                     </div>
                   </div>
                   
-                  {data.ppdbSettings.informasiTambahan && (
+                  {liveData.ppdbSettings.informasiTambahan && (
                     <div>
                       <h3 className="font-semibold text-lg mb-2">Informasi Tambahan:</h3>
-                      <p className="text-gray-700">{data.ppdbSettings.informasiTambahan}</p>
+                      <p className="text-gray-700">{liveData.ppdbSettings.informasiTambahan}</p>
                     </div>
                   )}
                 </div>
@@ -274,7 +562,7 @@ export default function HomeClient({ data }: { data: PageData }) {
                   <h3 className="text-2xl font-bold text-gray-900">VISI</h3>
                 </div>
                 <p className="text-gray-700 leading-relaxed text-lg">
-                  {data.visiMisi.visi}
+                  {liveData.visiMisi.visi}
                 </p>
               </div>
 
@@ -289,7 +577,7 @@ export default function HomeClient({ data }: { data: PageData }) {
                   <h3 className="text-2xl font-bold text-gray-900">MISI</h3>
                 </div>
                 <p className="text-gray-700 leading-relaxed text-lg">
-                  {data.visiMisi.misi}
+                  {liveData.visiMisi.misi}
                 </p>
               </div>
             </div>

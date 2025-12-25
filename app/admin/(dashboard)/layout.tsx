@@ -13,7 +13,8 @@ import {
   LogOut,
   Menu,
   X,
-  ChevronRight
+  ChevronRight,
+  BarChart3
 } from 'lucide-react'
 
 const navigation = [
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Verifikasi', href: '/admin/verifikasi', icon: FileCheck },
   { name: 'Pengumuman', href: '/admin/pengumuman', icon: Megaphone },
   { name: 'Jadwal', href: '/admin/jadwal', icon: Calendar },
+  { name: 'Laporan', href: '/admin/laporan', icon: BarChart3 },
   { name: 'Pengaturan', href: '/admin/pengaturan', icon: Settings },
 ]
 

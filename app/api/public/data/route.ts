@@ -5,6 +5,8 @@ const prisma = new PrismaClient()
 
 export async function GET() {
   try {
+    console.log('📡 API public/data dipanggil - Mengambil data terbaru dari database...')
+    
     // Ambil data PPDB settings, konten, dan pengumuman secara paralel
     const [ppdbSettings, contents, announcements] = await Promise.all([
       // PPDB Settings
@@ -33,6 +35,12 @@ export async function GET() {
         take: 5 // Ambil maksimal 5 pengumuman
       })
     ])
+    
+    console.log('✅ Data berhasil diambil dari database:', {
+      ppdbSettings: ppdbSettings ? 'Found' : 'Not found',
+      contents: contents.length,
+      announcements: announcements.length
+    })
 
     // Konversi array content menjadi object untuk akses mudah
     const contentMap = contents.reduce((acc, content) => {
@@ -79,10 +87,16 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: responseData
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     })
     
   } catch (error) {
-    console.error('Error fetching public data:', error)
+    console.error('❌ Error fetching public data:', error)
     
     // Return fallback data jika error
     const fallbackData = {

@@ -5,7 +5,8 @@ async function getPublicData() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     const response = await fetch(`${baseUrl}/api/public/data`, { 
-      cache: 'no-store' // Always get fresh data
+      cache: 'no-store', // Always get fresh data
+      next: { revalidate: 0 } // Disable caching completely
     })
     
     if (!response.ok) {

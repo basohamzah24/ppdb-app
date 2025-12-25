@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { writeFile, mkdir } from 'fs/promises'
+import { join } from 'path'
 
 // Generate nomor pendaftaran unik
 function generateNoPendaftaran(): string {
@@ -9,9 +11,41 @@ function generateNoPendaftaran(): string {
   return `PPDB${year}${month}${timestamp}`
 }
 
+async function saveFile(file: File, folder: string): Promise<string> {
+  const bytes = await file.arrayBuffer()
+  const buffer = Buffer.from(bytes)
+
+  // Create unique filename
+  const timestamp = Date.now()
+  const extension = file.name.split('.').pop()
+  const filename = `${timestamp}-${Math.random().toString(36).substring(7)}.${extension}`
+  
+  // Ensure uploads directory exists
+  const uploadsDir = join(process.cwd(), 'public', 'uploads', folder)
+  await mkdir(uploadsDir, { recursive: true })
+  
+  // Save file
+  const filePath = join(uploadsDir, filename)
+  await writeFile(filePath, buffer)
+  
+  return `/uploads/${folder}/${filename}`
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json()
+    const formData = await request.formData()
+    
+    // Extract form fields
+    const data: Record<string, any> = {}
+    const files: Record<string, File> = {}
+    
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        files[key] = value
+      } else {
+        data[key] = value
+      }
+    }
     
     // Validasi data wajib
     const requiredFields = ['nama', 'nik', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'alamat', 'agama', 'nama_ayah', 'nama_ibu', 'no_telp', 'jalur_pendaftaran']
@@ -20,6 +54,17 @@ export async function POST(request: NextRequest) {
       if (!data[field] || data[field].toString().trim() === '') {
         return NextResponse.json(
           { error: `Field ${field} wajib diisi` },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validasi dokumen wajib
+    const requiredDokumen = ['akta_kelahiran', 'kartu_keluarga', 'foto_siswa']
+    for (const dok of requiredDokumen) {
+      if (!files[dok]) {
+        return NextResponse.json(
+          { error: `Dokumen ${dok.replace('_', ' ')} wajib diupload` },
           { status: 400 }
         )
       }
@@ -47,6 +92,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Save uploaded files
+    console.log('📁 Saving uploaded files...')
+    const dokumenPaths = await Promise.all([
+      saveFile(files.akta_kelahiran, 'dokumen'),
+      saveFile(files.kartu_keluarga, 'dokumen'),
+      saveFile(files.foto_siswa, 'dokumen'),
+    ])
+
+    console.log('✅ Files saved:', dokumenPaths)
+
     // Generate nomor pendaftaran
     const noPendaftaran = generateNoPendaftaran()
 
@@ -61,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     // Mulai transaksi database
     const result = await prisma.$transaction(async (tx) => {
-      // Buat data pendaftar
+      // Buat data pendaftar dengan dokumen
       const pendaftar = await tx.pendaftar.create({
         data: {
           noPendaftaran,
@@ -77,7 +132,23 @@ export async function POST(request: NextRequest) {
           jalurPendaftaran: data.jalur_pendaftaran,
           asalSekolah: data.asal_sekolah || null,
           prestasi: data.prestasi || null,
-          statusPendaftaran: 'draft'
+          statusPendaftaran: 'draft',
+          
+          // Dokumen fields
+          aktaKelahiran_nama: files.akta_kelahiran.name,
+          aktaKelahiran_path: dokumenPaths[0],
+          aktaKelahiran_ukuran: files.akta_kelahiran.size,
+          aktaKelahiran_status: 'pending',
+          
+          kartuKeluarga_nama: files.kartu_keluarga.name,
+          kartuKeluarga_path: dokumenPaths[1],
+          kartuKeluarga_ukuran: files.kartu_keluarga.size,
+          kartuKeluarga_status: 'pending',
+          
+          fotoSiswa_nama: files.foto_siswa.name,
+          fotoSiswa_path: dokumenPaths[2],
+          fotoSiswa_ukuran: files.foto_siswa.size,
+          fotoSiswa_status: 'pending'
         }
       })
 

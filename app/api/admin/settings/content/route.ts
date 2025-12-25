@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Menerima request update content:', body)
     const { key, content, type = 'text' } = body
 
     if (!key || !content) {
@@ -72,15 +73,17 @@ export async function PUT(request: NextRequest) {
       }
     })
 
+    console.log('Content berhasil disimpan ke database:', result)
+
     return NextResponse.json({
       success: true,
       data: result,
-      message: 'Konten berhasil disimpan'
+      message: 'Konten berhasil disimpan ke database'
     })
   } catch (error) {
     console.error('Error updating content:', error)
     return NextResponse.json(
-      { success: false, message: 'Gagal menyimpan konten' },
+      { success: false, message: 'Gagal menyimpan konten: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     )
   } finally {

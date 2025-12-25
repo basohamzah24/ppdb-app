@@ -1,6 +1,37 @@
+import { Suspense } from 'react'
+import DynamicSchedule from '@/app/components/DynamicSchedule'
 
+async function getJadwalData() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/public/data`, { 
+      cache: 'no-store',
+      next: { revalidate: 0 }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch data')
+    }
+    
+    const result = await response.json()
+    return result.data
+  } catch (error) {
+    console.error('Error fetching jadwal data:', error)
+    // Return fallback data
+    return {
+      ppdb: {
+        tahunAjaran: '2025/2026',
+        statusPendaftaran: 'tutup',
+        tanggalBuka: new Date('2025-05-16'),
+        tanggalTutup: new Date('2025-06-15'),
+        kuotaSiswa: 100
+      }
+    }
+  }
+}
 
-export default function JadwalPage() {
+export default async function JadwalPage() {
+  const data = await getJadwalData()
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-green-50">
       <div className="container mx-auto px-4 py-8">
@@ -10,125 +41,26 @@ export default function JadwalPage() {
             Jadwal PPDB
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Jadwal Penerimaan Peserta Didik Baru Tahun Ajaran 2025/2026
+            Jadwal Penerimaan Peserta Didik Baru Tahun Ajaran {data.ppdb?.tahunAjaran || '2025/2026'}
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-8">
           
-          {/* Timeline Utama */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 md:p-8 border border-blue-100">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              Tahapan Pendaftaran
-            </h2>
-            
-            <div className="space-y-6">
-              {/* Sosialisasi */}
-              <div className="flex items-start space-x-4 pb-6 border-b border-gray-200">
-                <div className="shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-bold text-sm">1</span>
-                </div>
-                <div className="flex-1">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1">Sosialisasi PPDB</h3>
-                      <p className="text-gray-600 text-sm mb-2">Penyebarluasan informasi kepada masyarakat</p>
-                    </div>
-                    <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                      <span className="text-blue-800 font-medium text-sm">1 - 15 Mei 2025</span>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-xs text-gray-500">
-                    Informasi melalui website sekolah, spanduk, dan pengumuman di media sosial
-                  </div>
-                </div>
-              </div>
-
-              {/* Pendaftaran */}
-              <div className="flex items-start space-x-4 pb-6 border-b border-gray-200">
-                <div className="shrink-0 w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-sm">2</span>
-                </div>
-                <div className="flex-1">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1">Pendaftaran Online</h3>
-                      <p className="text-gray-600 text-sm mb-2">Pengisian formulir dan upload dokumen</p>
-                    </div>
-                    <div className="bg-green-50 px-4 py-2 rounded-lg">
-                      <span className="text-green-800 font-medium text-sm">16 - 31 Mei 2025</span>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-xs text-gray-500">
-                    Pendaftaran melalui website resmi dan verifikasi dokumen offline
-                  </div>
-                </div>
-              </div>
-
-              {/* Seleksi */}
-              <div className="flex items-start space-x-4 pb-6 border-b border-gray-200">
-                <div className="shrink-0 w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <span className="text-yellow-600 font-bold text-sm">3</span>
-                </div>
-                <div className="flex-1">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1">Seleksi dan Verifikasi</h3>
-                      <p className="text-gray-600 text-sm mb-2">Proses seleksi berdasarkan jalur pendaftaran</p>
-                    </div>
-                    <div className="bg-yellow-50 px-4 py-2 rounded-lg">
-                      <span className="text-yellow-800 font-medium text-sm">1 - 5 Juni 2025</span>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-xs text-gray-500">
-                    Verifikasi dokumen dan proses seleksi sesuai jalur masing-masing
-                  </div>
-                </div>
-              </div>
-
-              {/* Pengumuman */}
-              <div className="flex items-start space-x-4 pb-6 border-b border-gray-200">
-                <div className="shrink-0 w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <span className="text-purple-600 font-bold text-sm">4</span>
-                </div>
-                <div className="flex-1">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1">Pengumuman Hasil</h3>
-                      <p className="text-gray-600 text-sm mb-2">Pengumuman calon siswa yang diterima</p>
-                    </div>
-                    <div className="bg-purple-50 px-4 py-2 rounded-lg">
-                      <span className="text-purple-800 font-medium text-sm">10 Juni 2025</span>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-xs text-gray-500">
-                    Pengumuman melalui website sekolah dan papan pengumuman
-                  </div>
-                </div>
-              </div>
-
-              {/* Daftar Ulang */}
-              <div className="flex items-start space-x-4">
-                <div className="shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <span className="text-red-600 font-bold text-sm">5</span>
-                </div>
-                <div className="flex-1">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1">Daftar Ulang</h3>
-                      <p className="text-gray-600 text-sm mb-2">Konfirmasi kehadiran dan melengkapi berkas</p>
-                    </div>
-                    <div className="bg-red-50 px-4 py-2 rounded-lg">
-                      <span className="text-red-800 font-medium text-sm">11 - 15 Juni 2025</span>
-                    </div>
-                  </div>
-                  <div className="mt-3 text-xs text-gray-500">
-                    Wajib hadir ke sekolah dengan membawa dokumen asli untuk verifikasi
-                  </div>
+          {/* Jadwal Dinamis dari Admin */}
+          <Suspense fallback={
+            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 md:p-8 border border-blue-100">
+              <div className="animate-pulse space-y-4">
+                <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                 </div>
               </div>
             </div>
-          </div>
+          }>
+            <DynamicSchedule />
+          </Suspense>
 
           {/* Jadwal Khusus per Jalur */}
           <div className="grid md:grid-cols-2 gap-6">

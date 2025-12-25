@@ -15,7 +15,7 @@ export async function GET() {
     const [
       totalPendaftar,
       pendaftarHariIni,
-      pendaftarDenganDokumen
+      allPendaftar
     ] = await Promise.all([
       // Total pendaftar
       prisma.pendaftar.count(),
@@ -29,31 +29,28 @@ export async function GET() {
         }
       }),
       
-      // Pendaftar yang memiliki dokumen
-      prisma.pendaftar.count({
-        where: {
-          dokumen: {
-            some: {}
-          }
+      // Ambil semua pendaftar untuk hitung dokumen
+      prisma.pendaftar.findMany({
+        select: {
+          aktaKelahiran_nama: true,
+          kartuKeluarga_nama: true,
+          fotoSiswa_nama: true
         }
       })
     ])
 
-    // Hitung dokumen lengkap (minimal 3 dokumen)
-    // Ambil semua pendaftar dengan dokumen mereka
-    const pendaftarDenganJumlahDokumen = await prisma.pendaftar.findMany({
-      select: {
-        _count: {
-          select: {
-            dokumen: true
-          }
-        }
-      }
-    })
-    
-    // Hitung yang memiliki minimal 3 dokumen
-    const dokumenLengkap = pendaftarDenganJumlahDokumen.filter(
-      pendaftar => pendaftar._count.dokumen >= 3
+    // Hitung dokumen lengkap (3 dokumen: akta, kartu keluarga, foto)
+    const dokumenLengkap = allPendaftar.filter(p => 
+      p.aktaKelahiran_nama && 
+      p.kartuKeluarga_nama && 
+      p.fotoSiswa_nama
+    ).length
+
+    // Pendaftar dengan dokumen (minimal 1 dokumen)
+    const pendaftarDenganDokumen = allPendaftar.filter(p => 
+      p.aktaKelahiran_nama || 
+      p.kartuKeluarga_nama || 
+      p.fotoSiswa_nama
     ).length
 
     // Menunggu verifikasi = punya dokumen tapi belum lengkap

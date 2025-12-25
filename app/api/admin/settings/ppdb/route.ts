@@ -52,6 +52,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Menerima request update PPDB settings:', body)
     
     // Validasi input
     const {
@@ -106,15 +107,17 @@ export async function PUT(request: NextRequest) {
       })
     }
 
+    console.log('Data berhasil disimpan ke database:', settings)
+    
     return NextResponse.json({ 
       success: true, 
       data: settings,
-      message: 'Pengaturan PPDB berhasil disimpan'
+      message: 'Pengaturan PPDB berhasil disimpan ke database'
     })
   } catch (error) {
     console.error('Error updating PPDB settings:', error)
     return NextResponse.json(
-      { success: false, message: 'Gagal menyimpan pengaturan PPDB' },
+      { success: false, message: 'Gagal menyimpan pengaturan PPDB: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     )
   } finally {

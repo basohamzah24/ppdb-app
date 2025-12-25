@@ -85,6 +85,7 @@ export default function AdminPengaturan() {
     setMessage(null)
     
     try {
+      console.log('Menyimpan pengaturan:', settings)
       const response = await fetch('/api/admin/settings/ppdb', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -92,15 +93,31 @@ export default function AdminPengaturan() {
       })
       
       const result = await response.json()
+      console.log('Response dari server:', result)
       
       if (result.success) {
-        setMessage({ type: 'success', text: 'Pengaturan berhasil disimpan!' })
+        setMessage({ type: 'success', text: '✅ Data berhasil disimpan ke database! Perubahan sudah permanen.' })
+        
+        // Revalidasi cache halaman publik
+        try {
+          await fetch('/api/revalidate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: '/' })
+          })
+          console.log('Cache berhasil di-refresh')
+        } catch (revalidateError) {
+          console.warn('Revalidation failed:', revalidateError)
+        }
+        
+        // Reload data dari database untuk memastikan sinkron
+        await loadSettings()
       } else {
         setMessage({ type: 'error', text: result.message || 'Gagal menyimpan pengaturan' })
       }
     } catch (error) {
       console.error('Error saving settings:', error)
-      setMessage({ type: 'error', text: 'Terjadi kesalahan saat menyimpan' })
+      setMessage({ type: 'error', text: 'Terjadi kesalahan saat menyimpan: ' + (error instanceof Error ? error.message : 'Unknown error') })
     } finally {
       setSaving(false)
     }

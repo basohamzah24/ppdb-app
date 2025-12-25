@@ -1,6 +1,46 @@
+import { Suspense } from 'react'
 
+async function getInformasiData() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/public/data`, { 
+      cache: 'no-store',
+      next: { revalidate: 0 }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch data')
+    }
+    
+    const result = await response.json()
+    return result.data
+  } catch (error) {
+    console.error('Error fetching informasi data:', error)
+    // Return fallback data
+    return {
+      ppdb: {
+        tahunAjaran: '2025/2026',
+        persyaratan: [
+          'Fotokopi Akta Kelahiran yang telah dilegalisir',
+          'Fotokopi Kartu Keluarga',
+          'Fotokopi KTP orang tua/wali',
+          'Pas foto berwarna ukuran 3x4 sebanyak 3 lembar',
+          'Surat Keterangan Sehat dari dokter'
+        ],
+        alurPendaftaran: [
+          'Daftar online melalui website',
+          'Upload dokumen persyaratan',
+          'Verifikasi berkas oleh admin',
+          'Pengumuman hasil seleksi'
+        ],
+        informasiTambahan: 'Pendaftaran dilakukan secara online'
+      }
+    }
+  }
+}
 
-export default function InformasiPage() {
+export default async function InformasiPage() {
+  const data = await getInformasiData()
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-white to-green-50">
       
@@ -24,26 +64,22 @@ export default function InformasiPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-blue-800 mb-4">Dokumen yang Diperlukan:</h3>
                 <ul className="space-y-3 text-gray-700">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 shrink-0"></span>
-                    <span>Fotokopi Akta Kelahiran yang telah dilegalisir</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 shrink-0"></span>
-                    <span>Fotokopi Kartu Keluarga</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 shrink-0"></span>
-                    <span>Fotokopi Kartu Tanda Penduduk orang tua/wali</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 shrink-0"></span>
-                    <span>Pas foto berwarna ukuran 3x4 sebanyak 3 lembar</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 shrink-0"></span>
-                    <span>Surat Keterangan Sehat dari dokter</span>
-                  </li>
+                  {data.ppdb?.persyaratan?.map((item, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 shrink-0"></span>
+                      <span>{item}</span>
+                    </li>
+                  )) || [
+                    'Fotokopi Akta Kelahiran yang telah dilegalisir',
+                    'Fotokopi Kartu Keluarga', 
+                    'Pas foto berwarna ukuran 3x4 sebanyak 3 lembar',
+                    'Surat Keterangan Sehat dari dokter'
+                  ].map((item, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 shrink-0"></span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
               <div className="space-y-4">
@@ -59,6 +95,39 @@ export default function InformasiPage() {
               </div>
             </div>
           </div>
+
+          {/* Alur Pendaftaran */}
+          {data.ppdb?.alurPendaftaran && data.ppdb.alurPendaftaran.length > 0 && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 md:p-8 border border-green-100">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                Alur Pendaftaran
+              </h2>
+              <div className="space-y-4">
+                {data.ppdb.alurPendaftaran.map((item, index) => (
+                  <div key={index} className="flex items-start space-x-4 p-4 bg-green-50 rounded-xl">
+                    <div className="shrink-0 w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-gray-800 font-medium">{item}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Informasi Tambahan */}
+          {data.ppdb?.informasiTambahan && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 md:p-8 border border-yellow-100">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                Informasi Tambahan
+              </h2>
+              <div className="bg-yellow-50 rounded-xl p-4">
+                <p className="text-gray-800 leading-relaxed">{data.ppdb.informasiTambahan}</p>
+              </div>
+            </div>
+          )}
 
           {/* Jalur Pendaftaran */}
           <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 md:p-8 border border-green-100">
