@@ -188,66 +188,83 @@ export default function AdminPendaftar() {
     >
       <div className="space-y-6">
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mb-6">
-          <button
-            onClick={() => loadPendaftar()}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
-          <Link 
-            href="/admin/laporan" 
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export Data
-          </Link>
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-blue-100 rounded-xl">
+                <Users className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Manajemen Pendaftar</h2>
+                <p className="text-sm text-gray-600">Total: {pagination.total} siswa terdaftar</p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => loadPendaftar()}
+                disabled={loading}
+                className="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:shadow-md transition-all duration-200 flex items-center disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+              <Link 
+                href="/admin/laporan" 
+                className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 hover:shadow-lg transition-all duration-200 flex items-center"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export Data
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Cari Pendaftar</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Nama, No Pendaftaran, atau NIK"
-                className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center mb-4">
+            <Filter className="h-5 w-5 text-gray-500 mr-2" />
+            <h3 className="text-lg font-semibold text-gray-800">Filter & Pencarian</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Cari Pendaftar</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="Nama, No Pendaftaran, atau NIK"
+                  className="pl-10 w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                />
+              </div>
             </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Status</option>
-              <option value="draft">Draft</option>
-              <option value="submit">Submit</option>
-              <option value="review">Review</option>
-              <option value="accepted">Diterima</option>
-              <option value="rejected">Ditolak</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Jalur</label>
-            <select
-              value={jalurFilter}
-              onChange={(e) => setJalurFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Status Pendaftaran</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors"
+              >
+                <option value="">Semua Status</option>
+                <option value="draft">Draft</option>
+                <option value="submit">Submit</option>
+                <option value="review">Review</option>
+                <option value="accepted">Diterima</option>
+                <option value="rejected">Ditolak</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Jalur Pendaftaran</label>
+              <select
+                value={jalurFilter}
+                onChange={(e) => setJalurFilter(e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors"
+              >
               <option value="">Semua Jalur</option>
               <option value="reguler">Reguler</option>
               <option value="prestasi">Prestasi</option>

@@ -7,13 +7,13 @@ import {
   Home,
   Users, 
   CheckCircle,
-  Megaphone,
   Calendar,
   Settings,
   LogOut,
   Menu,
   X,
-  User
+  User,
+  FileText
 } from 'lucide-react'
 
 interface AdminLayoutProps {
@@ -47,10 +47,10 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
       active: pathname === '/admin/verifikasi'
     },
     { 
-      name: 'Pengumuman', 
-      href: '/admin/pengumuman', 
-      icon: Megaphone,
-      active: pathname === '/admin/pengumuman'
+      name: 'Laporan', 
+      href: '/admin/laporan', 
+      icon: FileText,
+      active: pathname === '/admin/laporan'
     },
     { 
       name: 'Jadwal', 
@@ -95,8 +95,12 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
 
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">PPDB</span>
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img 
+                  src="/logo-sd1.png" 
+                  alt="Logo SD" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-lg font-bold text-gray-900">Admin Panel</h1>

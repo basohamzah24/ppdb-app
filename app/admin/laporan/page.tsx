@@ -121,16 +121,27 @@ export default function AdminLaporan() {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Laporan PPDB</h1>
-            <p className="text-gray-600 mt-2">Generate dan analisis laporan pendaftaran</p>
+      <div className="mb-8 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-200 p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-indigo-100 rounded-xl">
+              <FileText className="h-7 w-7 text-indigo-600" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Laporan PPDB</h1>
+              <p className="text-gray-600 mt-1">Generate dan analisis laporan pendaftaran siswa baru</p>
+              {lastGenerated && (
+                <p className="text-sm text-gray-500 mt-1">
+                  <Calendar className="inline h-4 w-4 mr-1" />
+                  Terakhir diperbarui: {lastGenerated.toLocaleString('id-ID')}
+                </p>
+              )}
+            </div>
           </div>
           <div className="flex gap-3">
             <button
               onClick={loadReportStats}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+              className="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:shadow-md transition-all duration-200 flex items-center"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Data
@@ -145,16 +156,17 @@ export default function AdminLaporan() {
           const Icon = card.icon
           
           return (
-            <div key={card.title} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div key={card.title} className={`${card.bgColor} rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg hover:scale-105 transition-all duration-300`}>
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">{card.title}</p>
-                  <p className={`text-2xl font-bold ${card.textColor}`}>
-                    {card.value}
-                  </p>
-                </div>
-                <div className={`p-3 rounded-full ${card.bgColor}`}>
-                  <Icon className={`h-6 w-6 ${card.textColor}`} />
+                <div className="flex-1">
+                  <p className={`text-sm font-medium ${card.textColor} mb-1`}>{card.title}</p>
+                  <p className={`text-3xl font-bold ${card.textColor} mb-2`}>{card.value.toLocaleString('id-ID')}</p>
+                  <div className="flex items-center">
+                    <div className={`p-1.5 ${card.color} rounded-lg`}>
+                      <Icon className="h-4 w-4 text-white" />
+                    </div>
+                    <span className={`text-xs ${card.textColor} ml-2 font-medium`}>Siswa</span>
+                  </div>
                 </div>
               </div>
             </div>

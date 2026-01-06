@@ -1,7 +1,8 @@
 ﻿'use client';
 
 import { useState } from 'react';
-import { Upload, FileText } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Upload, FileText, Search, Send, Clock, CheckCircle, XCircle, X } from 'lucide-react';
 
 export default function PendaftaranPage() {
   const [formData, setFormData] = useState({
@@ -40,12 +41,30 @@ export default function PendaftaranPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+  const [nikExists, setNikExists] = useState(false);
+  const [nikChecked, setNikChecked] = useState(false);
+  const [nikCheckMessage, setNikCheckMessage] = useState('');
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusNik, setStatusNik] = useState('');
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [statusResult, setStatusResult] = useState<any>(null);
+  const [statusError, setStatusError] = useState('');
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    
+    // Reset NIK checking when NIK changes
+    if (name === 'nik') {
+      setNikChecked(false);
+      setNikExists(false);
+      setNikCheckMessage('');
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, jenisFile: string) => {
@@ -113,6 +132,107 @@ export default function PendaftaranPage() {
     }
     
     return null;
+  };
+
+  const checkNIK = async () => {
+    if (!formData.nik.trim() || formData.nik.length !== 16) {
+      setNikCheckMessage('NIK harus 16 digit');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/public/check-nik?nik=${encodeURIComponent(formData.nik)}`);
+      const result = await response.json();
+      
+      if (response.ok) {
+        setNikExists(result.exists);
+        setNikChecked(true);
+        
+        if (result.exists) {
+          setNikCheckMessage(`NIK sudah terdaftar atas nama: ${result.data?.nama || 'Unknown'}`);
+        } else {
+          setNikCheckMessage('NIK belum terdaftar, silakan lanjutkan pendaftaran');
+        }
+      } else {
+        setNikCheckMessage(result.error || 'Gagal mengecek NIK');
+      }
+    } catch (error) {
+      setNikCheckMessage('Terjadi kesalahan saat mengecek NIK');
+    }
+  };
+
+  const handleCekStatus = () => {
+    setShowStatusModal(true);
+    setStatusNik('');
+    setStatusResult(null);
+    setStatusError('');
+  };
+
+  const handleStatusSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!statusNik.trim()) {
+      setStatusError('Masukkan NIK Anda');
+      return;
+    }
+
+    if (statusNik.length !== 16) {
+      setStatusError('NIK harus 16 digit');
+      return;
+    }
+
+    setStatusLoading(true);
+    setStatusError('');
+    
+    try {
+      const response = await fetch(`/api/public/status?nik=${statusNik}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setStatusResult(data);
+      } else {
+        setStatusError(data.message || 'Pendaftaran tidak ditemukan');
+        setStatusResult(null);
+      }
+    } catch (error) {
+      console.error('Error fetching status:', error);
+      setStatusError('Terjadi kesalahan saat mengecek status');
+      setStatusResult(null);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'DITINJAU':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+            <Clock className="w-4 h-4 mr-1" />
+            Sedang Ditinjau
+          </span>
+        );
+      case 'DITERIMA':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+            <CheckCircle className="w-4 h-4 mr-1" />
+            Diterima
+          </span>
+        );
+      case 'DITOLAK':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+            <XCircle className="w-4 h-4 mr-1" />
+            Ditolak
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+            {status}
+          </span>
+        );
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -693,19 +813,73 @@ export default function PendaftaranPage() {
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* NIK Status Check */}
+              {formData.nik.length === 16 && !nikChecked && (
+                <div className="bg-blue-50 rounded-2xl p-4 text-center">
+                  <p className="text-blue-800 text-sm mb-3">
+                    Cek terlebih dahulu apakah NIK sudah terdaftar
+                  </p>
+                  <button
+                    type="button"
+                    onClick={checkNIK}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    Cek NIK
+                  </button>
+                </div>
+              )}
+
+              {/* NIK Check Message */}
+              {nikCheckMessage && (
+                <div className={`rounded-2xl p-4 text-center ${
+                  nikExists 
+                    ? 'bg-yellow-50 border border-yellow-200' 
+                    : 'bg-green-50 border border-green-200'
+                }`}>
+                  <p className={`text-sm font-medium ${
+                    nikExists ? 'text-yellow-800' : 'text-green-800'
+                  }`}>
+                    {nikCheckMessage}
+                  </p>
+                  {nikExists && (
+                    <p className="text-xs text-yellow-700 mt-2">
+                      Gunakan tombol "Cek Status Pendaftaran" untuk melihat status Anda
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Dual Action Buttons */}
               <div className="bg-gray-50 rounded-2xl p-6 text-center">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`w-full md:w-auto px-8 py-4 rounded-xl font-semibold text-white text-lg transition duration-200 ${
-                    isSubmitting
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg hover:shadow-xl'
-                  }`}
-                >
-                  {isSubmitting ? 'Sedang Mendaftar...' : 'Kirim Formulir Pendaftaran'}
-                </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {/* Primary Button: Kirim Pendaftaran */}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || nikExists || (nikChecked && formData.nik.length === 16 && nikExists)}
+                    className={`px-8 py-4 rounded-xl font-semibold text-lg transition duration-200 flex items-center justify-center space-x-2 ${
+                      isSubmitting || nikExists
+                        ? 'bg-gray-400 cursor-not-allowed text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg hover:shadow-xl'
+                    }`}
+                  >
+                    <Send className="w-5 h-5" />
+                    <span>
+                      {isSubmitting ? 'Sedang Mendaftar...' : 
+                       nikExists ? 'Sudah Terdaftar' : 
+                       'Kirim Pendaftaran'}
+                    </span>
+                  </button>
+
+                  {/* Secondary Button: Cek Status */}
+                  <button
+                    type="button"
+                    onClick={handleCekStatus}
+                    className="px-8 py-4 rounded-xl font-semibold text-lg transition duration-200 flex items-center justify-center space-x-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    <Search className="w-5 h-5" />
+                    <span>Cek Status Pendaftaran</span>
+                  </button>
+                </div>
                 
                 <div className="mt-4 text-sm text-gray-600">
                   <p className="mb-2">Dengan mengirim formulir ini, saya menyatakan bahwa:</p>
@@ -720,6 +894,144 @@ export default function PendaftaranPage() {
           </div>
         </div>
       </div>
+
+      {/* Status Check Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Cek Status Pendaftaran</h2>
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {!statusResult ? (
+                <form onSubmit={handleStatusSearch} className="space-y-4">
+                  <div>
+                    <label htmlFor="statusNik" className="block text-sm font-medium text-gray-700 mb-2">
+                      NIK (Nomor Induk Kependudukan)
+                    </label>
+                    <input
+                      id="statusNik"
+                      type="text"
+                      placeholder="Masukkan NIK 16 digit"
+                      value={statusNik}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '')
+                        if (value.length <= 16) {
+                          setStatusNik(value)
+                        }
+                      }}
+                      maxLength={16}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    disabled={statusLoading || statusNik.length !== 16}
+                    className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors ${
+                      statusLoading || statusNik.length !== 16
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    {statusLoading ? 'Mencari...' : 'Cek Status'}
+                  </button>
+
+                  {statusError && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-red-600 text-sm text-center">{statusError}</p>
+                    </div>
+                  )}
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    {statusResult.status === 'DITERIMA' ? (
+                      <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                    ) : statusResult.status === 'DITOLAK' ? (
+                      <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    ) : (
+                      <Clock className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                    )}
+                    {getStatusBadge(statusResult.status)}
+                  </div>
+                  
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h3 className="font-semibold text-blue-900 mb-3">Informasi Pendaftaran</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Nama:</span>
+                        <span className="font-medium">{statusResult.nama_lengkap}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">No. Registrasi:</span>
+                        <span className="font-medium">{statusResult.no_registrasi}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tanggal Daftar:</span>
+                        <span className="font-medium">
+                          {new Date(statusResult.created_at).toLocaleDateString('id-ID')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {statusResult.status === 'DITERIMA' && (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <h4 className="font-semibold text-green-900 mb-2">🎉 Selamat!</h4>
+                      <p className="text-green-700 text-sm">
+                        Pendaftaran Anda telah diterima. Silakan tunggu informasi lebih lanjut mengenai tahap selanjutnya.
+                      </p>
+                    </div>
+                  )}
+
+                  {statusResult.status === 'DITOLAK' && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h4 className="font-semibold text-red-900 mb-2">Mohon Maaf</h4>
+                      <p className="text-red-700 text-sm">
+                        Pendaftaran Anda belum dapat diterima pada periode ini.
+                      </p>
+                    </div>
+                  )}
+
+                  {statusResult.catatan && (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-yellow-800 text-sm">
+                        <strong>Catatan:</strong> {statusResult.catatan}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => {
+                        setStatusResult(null)
+                        setStatusNik('')
+                      }}
+                      className="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Cek NIK Lain
+                    </button>
+                    <button
+                      onClick={() => setShowStatusModal(false)}
+                      className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Tutup
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Image from 'next/image'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,7 +17,7 @@ import {
   Eye, 
   Download,
   FileText,
-  Image,
+  Image as ImageIcon,
   Filter,
   ZoomIn,
   ZoomOut,
@@ -115,7 +116,7 @@ export default function AdminVerifikasi() {
     setTimeout(() => setToast({ show: false, message: '', type: 'info' }), 5000)
   }, [])
 
-  const fetchPendaftar = async () => {
+  const fetchPendaftar = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -139,7 +140,7 @@ export default function AdminVerifikasi() {
       showToast('Terjadi kesalahan saat memuat data', 'error')
     }
     setLoading(false)
-  }
+  }, [currentPage, statusFilter, debouncedSearchTerm, showToast])
 
   useEffect(() => {
     fetchPendaftar()
@@ -175,7 +176,7 @@ export default function AdminVerifikasi() {
     
     const ext = fileName.split('.').pop()?.toLowerCase()
     if (['jpg', 'jpeg', 'png'].includes(ext || '')) {
-      return <Image className="w-4 h-4" />
+      return <ImageIcon className="w-4 h-4" />
     }
     return <FileText className="w-4 h-4" />
   }
@@ -188,14 +189,19 @@ export default function AdminVerifikasi() {
   ) => {
     setIsUpdating(true)
     try {
-      const payload: any = {
+      const payload: {
+        id: string;
+        dokumenType: DocumentType;
+        dokumenStatus: string;
+        alasan?: string;
+      } = {
         id: pendaftarId,
         dokumenType: documentType,
         dokumenStatus: action
       }
       
       if (action === 'rejected' && reason) {
-        payload.rejectionReason = reason
+        payload.alasan = reason
       }
 
       const response = await fetch('/api/admin/pendaftar', {
@@ -381,11 +387,11 @@ export default function AdminVerifikasi() {
     >
       {/* Toast Notification */}
       {toast.show && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-md ${
-          toast.type === 'success' ? 'bg-green-500 text-white' :
-          toast.type === 'error' ? 'bg-red-500 text-white' :
-          'bg-blue-500 text-white'
-        } animate-in slide-in-from-right duration-300`}>
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-xl shadow-xl max-w-md ${
+          toast.type === 'success' ? 'bg-linear-to-r from-green-500 to-green-600 text-white' :
+          toast.type === 'error' ? 'bg-linear-to-r from-red-500 to-red-600 text-white' :
+          'bg-linear-to-r from-blue-500 to-blue-600 text-white'
+        } animate-in slide-in-from-right duration-300 border border-white/20`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               {toast.type === 'success' && <CheckCircle className="w-5 h-5 mr-2" />}
@@ -397,7 +403,7 @@ export default function AdminVerifikasi() {
               variant="ghost"
               size="sm"
               onClick={() => setToast({ show: false, message: '', type: 'info' })}
-              className="p-1 h-6 w-6 text-white hover:bg-white/20"
+              className="p-1 h-6 w-6 text-white hover:bg-white/20 rounded-full"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -760,7 +766,7 @@ export default function AdminVerifikasi() {
       {selectedDocument && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b flex-shrink-0">
+            <div className="p-6 border-b shrink-0">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-lg font-semibold">
@@ -854,9 +860,11 @@ export default function AdminVerifikasi() {
                         transformOrigin: 'center'
                       }}
                     >
-                      <img
+                      <Image
                         src={selectedDocument.documentPath}
-                        alt={selectedDocument.documentName}
+                        alt={selectedDocument.documentName || 'Document image'}
+                        width={800}
+                        height={600}
                         className="max-w-full h-auto mx-auto object-contain shadow-lg"
                         style={{ maxHeight: '70vh' }}
                         onError={(e) => {
@@ -879,7 +887,7 @@ export default function AdminVerifikasi() {
               </div>
             </div>
 
-            <div className="flex-shrink-0 p-6 border-t bg-gray-50">
+            <div className="shrink-0 p-6 border-t bg-gray-50">
               <div className="flex justify-center gap-4">
                 <Button
                   onClick={() => handleDocumentAction(

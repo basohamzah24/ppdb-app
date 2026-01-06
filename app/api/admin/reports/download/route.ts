@@ -4,6 +4,28 @@ import * as XLSX from 'xlsx'
 
 const prisma = new PrismaClient()
 
+// Type definition for the student data from Prisma query
+type StudentData = {
+  noPendaftaran: string
+  nama: string
+  nik: string
+  tempatLahir: string
+  tanggalLahir: Date
+  jenisKelamin: string
+  agama: string
+  alamat: string
+  jalurPendaftaran: string
+  asalSekolah: string | null
+  statusPendaftaran: string
+  tanggalDaftar: Date
+  orangTua: {
+    namaAyah: string | null
+    namaIbu: string | null
+    noTelp: string | null
+    email: string | null
+  }[]
+}
+
 export async function GET() {
   try {
     console.log('📊 Generating report...')
@@ -37,7 +59,7 @@ export async function GET() {
 
     console.log('📊 Report stats:', { totalPendaftar, pendaftarPerJalur, pendaftarPerStatus })
 
-    // Ambil detail pendaftar untuk CSV
+    // Ambil detail pendaftar
     const pendaftarDetails = await prisma.pendaftar.findMany({
       select: {
         noPendaftaran: true,
@@ -68,31 +90,17 @@ export async function GET() {
 
     console.log('📊 Pendaftar details:', pendaftarDetails.length, 'records')
 
-    // Prepare data for Excel
+    // Prepare Excel data
     const excelData = [
       // Header row
       [
-        'No Pendaftaran',
-        'Nama',
-        'NIK',
-        'Tempat Lahir',
-        'Tanggal Lahir',
-        'Jenis Kelamin',
-        'Agama',
-        'Alamat',
-        'Jalur Pendaftaran',
-        'Asal Sekolah',
-        'Status Pendaftaran',
-        'Nama Ayah',
-        'Nama Ibu',
-        'No Telepon',
-        'Email',
-        'Tanggal Daftar'
+        'No Pendaftaran', 'Nama', 'NIK', 'Tempat Lahir', 'Tanggal Lahir',
+        'Jenis Kelamin', 'Agama', 'Alamat', 'Jalur Pendaftaran', 'Asal Sekolah',
+        'Status', 'Nama Ayah', 'Nama Ibu', 'No Telepon', 'Email', 'Tanggal Daftar'
       ],
       // Data rows
-      ...pendaftarDetails.map(pendaftar => {
-        const orangTua = pendaftar.orangTua[0]
-        
+      ...pendaftarDetails.map((pendaftar: StudentData) => {
+        const orangTua = pendaftar.orangTua[0] // Ambil data orang tua pertama
         return [
           pendaftar.noPendaftaran,
           pendaftar.nama,

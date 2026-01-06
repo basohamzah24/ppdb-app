@@ -193,50 +193,68 @@ export default function AdminJadwal() {
       title="Jadwal" 
       subtitle="Kelola jadwal dan regulasi PPDB"
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Header dengan tombol tambah */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-6 w-6" />
-            <h2 className="text-xl font-semibold">Manajemen Jadwal</h2>
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-xl border border-blue-100 shadow-sm">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                <Calendar className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Manajemen Jadwal
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Kelola jadwal kegiatan PPDB
+                </p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setShowForm(!showForm)}
+              className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] px-6"
+              size="lg"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              {showForm ? 'Tutup Form' : 'Tambah Jadwal'}
+            </Button>
           </div>
-          <Button 
-            onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            {showForm ? 'Tutup Form' : 'Tambah Jadwal'}
-          </Button>
         </div>
 
         {/* Form Input */}
         {showForm && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {editingId ? 'Edit Jadwal' : 'Tambah Jadwal Baru'}
+          <Card className="shadow-sm border-2 hover:border-blue-200 transition-all duration-300 hover:shadow-md">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                  <Edit className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-gray-800">
+                  {editingId ? 'Edit Jadwal' : 'Tambah Jadwal Baru'}
+                </span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="title">Judul Kegiatan *</Label>
+            <CardContent className="p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="title" className="text-sm font-medium text-gray-700">Judul Kegiatan *</Label>
                     <Input
                       id="title"
                       value={formData.title}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
                       placeholder="Contoh: Pendaftaran Online"
                       required
+                      className="border-2 focus:border-blue-400 transition-colors"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="type">Jenis Kegiatan</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="type" className="text-sm font-medium text-gray-700">Jenis Kegiatan</Label>
                     <select
                       id="type"
                       value={formData.type}
                       onChange={(e) => setFormData({...formData, type: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      className="w-full p-3 border-2 border-gray-200 rounded-md focus:border-blue-400 focus:ring-0 transition-colors bg-white"
                     >
                       <option value="regular">Regular</option>
                       <option value="important">Penting</option>
@@ -245,97 +263,107 @@ export default function AdminJadwal() {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="description">Deskripsi</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-sm font-medium text-gray-700">Deskripsi</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     placeholder="Deskripsi detail kegiatan..."
                     rows={3}
+                    className="border-2 focus:border-blue-400 transition-colors resize-none"
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="startDate">Tanggal Mulai *</Label>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">Tanggal Mulai *</Label>
                     <Input
                       id="startDate"
                       type="date"
                       value={formData.startDate}
                       onChange={(e) => setFormData({...formData, startDate: e.target.value})}
                       required
+                      className="border-2 focus:border-blue-400 transition-colors"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="endDate">Tanggal Selesai</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="endDate" className="text-sm font-medium text-gray-700">Tanggal Selesai</Label>
                     <Input
                       id="endDate"
                       type="date"
                       value={formData.endDate}
                       onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                      className="border-2 focus:border-blue-400 transition-colors"
                     />
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="startTime">Jam Mulai</Label>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="startTime" className="text-sm font-medium text-gray-700">Jam Mulai</Label>
                     <Input
                       id="startTime"
                       type="time"
                       value={formData.startTime}
                       onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+                      className="border-2 focus:border-blue-400 transition-colors"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="endTime">Jam Selesai</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="endTime" className="text-sm font-medium text-gray-700">Jam Selesai</Label>
                     <Input
                       id="endTime"
                       type="time"
                       value={formData.endTime}
                       onChange={(e) => setFormData({...formData, endTime: e.target.value})}
+                      className="border-2 focus:border-blue-400 transition-colors"
                     />
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="location">Lokasi</Label>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="location" className="text-sm font-medium text-gray-700">Lokasi</Label>
                     <Input
                       id="location"
                       value={formData.location}
                       onChange={(e) => setFormData({...formData, location: e.target.value})}
                       placeholder="Contoh: Ruang Lab Komputer"
+                      className="border-2 focus:border-blue-400 transition-colors"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="order">Urutan Tampil</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="order" className="text-sm font-medium text-gray-700">Urutan Tampil</Label>
                     <Input
                       id="order"
                       type="number"
                       value={formData.order}
                       onChange={(e) => setFormData({...formData, order: e.target.value})}
                       placeholder="0"
+                      className="border-2 focus:border-blue-400 transition-colors"
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-3 pt-4">
                   <Button 
                     type="submit" 
                     disabled={submitting}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 px-6"
                   >
                     {submitting ? 'Menyimpan...' : (editingId ? 'Update' : 'Simpan')}
                   </Button>
-                  <Button 
-                    type="button" 
-                    onClick={resetForm}
-                    variant="outline"
-                  >
-                    Batal
-                  </Button>
+                  {editingId && (
+                    <Button 
+                      type="button" 
+                      onClick={resetForm}
+                      variant="outline"
+                      className="border-2 hover:border-gray-400 transition-colors px-6"
+                    >
+                      Batal
+                    </Button>
+                  )}
                 </div>
               </form>
             </CardContent>
@@ -343,15 +371,19 @@ export default function AdminJadwal() {
         )}
 
         {/* Daftar Jadwal */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Daftar Jadwal ({schedules.length})</CardTitle>
+        <Card className="shadow-sm border-2 hover:border-blue-200 transition-all duration-300 hover:shadow-md">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                <Calendar className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-gray-800">Daftar Jadwal ({schedules.length})</span>
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-gray-500">Memuat jadwal...</p>
+          <CardContent className="p-0">{loading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="mt-3 text-gray-500 font-medium">Memuat jadwal...</p>
               </div>
             ) : schedules.length === 0 ? (
               <div className="text-center py-12">
@@ -360,25 +392,24 @@ export default function AdminJadwal() {
                 <p className="text-gray-500 mb-4">Klik "Tambah Jadwal" untuk membuat jadwal baru</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {schedules.map((schedule) => (
-                  <div key={schedule.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div className="divide-y divide-gray-100">{schedules.map((schedule) => (
+                  <div key={schedule.id} className="p-6 hover:bg-gray-50 transition-colors">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-lg">{schedule.title}</h3>
-                          <Badge className={`text-white ${getBadgeColor(schedule.type)}`}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-lg font-semibold text-gray-900">{schedule.title}</h3>
+                          <Badge className={`text-white px-3 py-1 font-medium ${getBadgeColor(schedule.type)}`}>
                             {schedule.type === 'important' ? 'Penting' : 
                              schedule.type === 'deadline' ? 'Deadline' : 'Regular'}
                           </Badge>
                         </div>
                         
                         {schedule.description && (
-                          <p className="text-gray-600 mb-3">{schedule.description}</p>
+                          <p className="text-gray-600 mb-3 leading-relaxed">{schedule.description}</p>
                         )}
                         
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2 text-gray-600">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
                             <span>{formatDate(schedule.startDate)}</span>
                             {schedule.endDate && (
@@ -387,7 +418,7 @@ export default function AdminJadwal() {
                           </div>
                           
                           {schedule.startTime && (
-                            <div className="flex items-center gap-2 text-gray-600">
+                            <div className="flex items-center gap-2">
                               <Clock className="h-4 w-4" />
                               <span>{schedule.startTime}</span>
                               {schedule.endTime && <span> - {schedule.endTime}</span>}
@@ -395,7 +426,7 @@ export default function AdminJadwal() {
                           )}
                           
                           {schedule.location && (
-                            <div className="flex items-center gap-2 text-gray-600">
+                            <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4" />
                               <span>{schedule.location}</span>
                             </div>
@@ -407,20 +438,18 @@ export default function AdminJadwal() {
                         <Button 
                           size="sm" 
                           onClick={() => handleEdit(schedule)}
-                          className="flex items-center gap-1"
-                          variant="outline"
+                          variant="ghost"
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                         >
-                          <Edit className="h-3 w-3" />
-                          Edit
+                          <Edit className="h-4 w-4" />
                         </Button>
                         <Button 
                           size="sm" 
-                          variant="destructive"
+                          variant="ghost"
                           onClick={() => handleDelete(schedule.id, schedule.title)}
-                          className="flex items-center gap-1"
+                          className="text-red-600 hover:text-red-800 hover:bg-red-50"
                         >
-                          <Trash2 className="h-3 w-3" />
-                          Hapus
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>

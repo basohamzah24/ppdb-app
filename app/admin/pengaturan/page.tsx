@@ -172,45 +172,66 @@ export default function AdminPengaturan() {
       title="Pengaturan PPDB" 
       subtitle="Konfigurasi pendaftaran dan konten website"
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
+        {/* Header Enhancement */}
+        <div className="bg-gradient-to-br from-violet-50 via-purple-50 to-blue-50 p-8 rounded-xl border border-purple-100 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl shadow-lg">
+              <Settings className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+                Pengaturan PPDB
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Kelola pengaturan dan konfigurasi sistem PPDB
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Alert Messages */}
         {message && (
-          <Alert variant={message.type === 'error' ? 'destructive' : 'default'}>
+          <Alert variant={message.type === 'error' ? 'destructive' : 'default'} className="border-2 shadow-sm">
             {message.type === 'success' ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-            <AlertDescription>{message.text}</AlertDescription>
+            <AlertDescription className="font-medium">{message.text}</AlertDescription>
           </Alert>
         )}
 
         {/* Basic Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Pengaturan Dasar
+        <Card className="shadow-sm border-2 hover:border-purple-200 transition-all duration-300 hover:shadow-md">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 border-b border-purple-100">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg shadow-sm">
+                <Settings className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-gray-800">Pengaturan Dasar</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-600 mt-2">
               Konfigurasi dasar penerimaan peserta didik baru
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="tahunAjaran">Tahun Ajaran</Label>
+          <CardContent className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="tahunAjaran" className="text-sm font-medium text-gray-700">Tahun Ajaran</Label>
                 <Input
                   id="tahunAjaran"
                   value={settings.tahunAjaran}
                   onChange={(e) => setSettings(prev => ({ ...prev, tahunAjaran: e.target.value }))}
                   placeholder="2025/2026"
+                  className="border-2 focus:border-purple-400 transition-colors"
                 />
               </div>
-              <div>
-                <Label htmlFor="kuotaSiswa">Kuota Siswa</Label>
+              <div className="space-y-2">
+                <Label htmlFor="kuotaSiswa" className="text-sm font-medium text-gray-700">Kuota Siswa</Label>
                 <Input
                   id="kuotaSiswa"
                   type="number"
                   value={settings.kuotaSiswa}
                   onChange={(e) => setSettings(prev => ({ ...prev, kuotaSiswa: parseInt(e.target.value) || 0 }))}
                   placeholder="100"
+                  className="border-2 focus:border-purple-400 transition-colors"
                 />
               </div>
             </div>
@@ -218,17 +239,26 @@ export default function AdminPengaturan() {
         </Card>
 
         {/* Schedule Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Jadwal Pendaftaran
+        <Card className="shadow-sm border-2 hover:border-blue-200 transition-all duration-300 hover:shadow-md">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-sm">
+                <Calendar className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-gray-800">Jadwal Pendaftaran</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4 mb-4">
-              <Label>Status:</Label>
-              <Badge variant={settings.statusPendaftaran === 'buka' ? 'default' : 'secondary'}>
+          <CardContent className="p-6 space-y-6">
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-blue-100">
+              <Label className="text-sm font-medium text-gray-700">Status Pendaftaran:</Label>
+              <Badge 
+                variant={settings.statusPendaftaran === 'buka' ? 'default' : 'secondary'} 
+                className={`px-3 py-1 font-medium ${
+                  settings.statusPendaftaran === 'buka' 
+                    ? 'bg-green-100 text-green-700 border-green-200' 
+                    : 'bg-red-100 text-red-700 border-red-200'
+                }`}
+              >
                 {settings.statusPendaftaran === 'buka' ? 'Buka' : 'Tutup'}
               </Badge>
               <Button
@@ -238,28 +268,31 @@ export default function AdminPengaturan() {
                   ...prev, 
                   statusPendaftaran: prev.statusPendaftaran === 'buka' ? 'tutup' : 'buka' 
                 }))}
+                className="border-2 hover:border-blue-300 transition-colors"
               >
                 {settings.statusPendaftaran === 'buka' ? 'Tutup Pendaftaran' : 'Buka Pendaftaran'}
               </Button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="tanggalBuka">Tanggal Buka</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="tanggalBuka" className="text-sm font-medium text-gray-700">Tanggal Buka</Label>
                 <Input
                   id="tanggalBuka"
                   type="date"
                   value={settings.tanggalBuka}
                   onChange={(e) => setSettings(prev => ({ ...prev, tanggalBuka: e.target.value }))}
+                  className="border-2 focus:border-blue-400 transition-colors"
                 />
               </div>
-              <div>
-                <Label htmlFor="tanggalTutup">Tanggal Tutup</Label>
+              <div className="space-y-2">
+                <Label htmlFor="tanggalTutup" className="text-sm font-medium text-gray-700">Tanggal Tutup</Label>
                 <Input
                   id="tanggalTutup"
                   type="date"
                   value={settings.tanggalTutup}
                   onChange={(e) => setSettings(prev => ({ ...prev, tanggalTutup: e.target.value }))}
+                  className="border-2 focus:border-blue-400 transition-colors"
                 />
               </div>
             </div>
@@ -267,115 +300,152 @@ export default function AdminPengaturan() {
         </Card>
 
         {/* Requirements */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Persyaratan Pendaftaran
+        <Card className="shadow-sm border-2 hover:border-green-200 transition-all duration-300 hover:shadow-md">
+          <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-sm">
+                <FileText className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-gray-800">Persyaratan Pendaftaran</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
+          <CardContent className="p-6 space-y-6">
+            <div className="flex gap-3">
               <Input
                 value={newPersyaratan}
                 onChange={(e) => setNewPersyaratan(e.target.value)}
                 placeholder="Tambah persyaratan baru..."
                 onKeyDown={(e) => e.key === 'Enter' && addPersyaratan()}
+                className="border-2 focus:border-green-400 transition-colors"
               />
-              <Button onClick={addPersyaratan}>Tambah</Button>
+              <Button 
+                onClick={addPersyaratan}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0 shadow-sm px-6"
+              >
+                Tambah
+              </Button>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               {settings.persyaratan.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <span>{index + 1}. {item}</span>
+                <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-green-50 rounded-lg border border-green-100 hover:border-green-200 transition-colors">
+                  <span className="font-medium text-gray-700">{index + 1}. {item}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => removePersyaratan(index)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
                   >
                     Hapus
                   </Button>
                 </div>
               ))}
               {settings.persyaratan.length === 0 && (
-                <p className="text-gray-500 text-center py-4">Belum ada persyaratan</p>
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">Belum ada persyaratan</p>
+                  <p className="text-gray-400 text-sm">Tambahkan persyaratan pendaftaran di atas</p>
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
 
         {/* Registration Flow */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Alur Pendaftaran
+        <Card className="shadow-sm border-2 hover:border-orange-200 transition-all duration-300 hover:shadow-md">
+          <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg shadow-sm">
+                <Users className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-gray-800">Alur Pendaftaran</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
+          <CardContent className="p-6 space-y-6">
+            <div className="flex gap-3">
               <Input
                 value={newAlur}
                 onChange={(e) => setNewAlur(e.target.value)}
                 placeholder="Tambah langkah alur pendaftaran..."
                 onKeyDown={(e) => e.key === 'Enter' && addAlur()}
+                className="border-2 focus:border-orange-400 transition-colors"
               />
-              <Button onClick={addAlur}>Tambah</Button>
+              <Button 
+                onClick={addAlur}
+                className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white border-0 shadow-sm px-6"
+              >
+                Tambah
+              </Button>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               {settings.alurPendaftaran.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <span>{index + 1}. {item}</span>
+                <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-orange-50 rounded-lg border border-orange-100 hover:border-orange-200 transition-colors">
+                  <span className="font-medium text-gray-700">{index + 1}. {item}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => removeAlur(index)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
                   >
                     Hapus
                   </Button>
                 </div>
               ))}
               {settings.alurPendaftaran.length === 0 && (
-                <p className="text-gray-500 text-center py-4">Belum ada alur pendaftaran</p>
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">Belum ada alur pendaftaran</p>
+                  <p className="text-gray-400 text-sm">Tambahkan langkah alur pendaftaran di atas</p>
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
 
         {/* Additional Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Informasi Tambahan</CardTitle>
+        <Card className="shadow-sm border-2 hover:border-indigo-200 transition-all duration-300 hover:shadow-md">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100">
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-sm">
+                <FileText className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-gray-800">Informasi Tambahan</span>
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Textarea
-              value={settings.informasiTambahan}
-              onChange={(e) => setSettings(prev => ({ ...prev, informasiTambahan: e.target.value }))}
-              placeholder="Informasi tambahan yang akan ditampilkan di halaman publik..."
-              rows={4}
-            />
+          <CardContent className="p-6">
+            <div className="space-y-2">
+              <Label htmlFor="informasiTambahan" className="text-sm font-medium text-gray-700">
+                Informasi yang akan ditampilkan di halaman publik
+              </Label>
+              <Textarea
+                id="informasiTambahan"
+                value={settings.informasiTambahan}
+                onChange={(e) => setSettings(prev => ({ ...prev, informasiTambahan: e.target.value }))}
+                placeholder="Informasi tambahan yang akan ditampilkan di halaman publik..."
+                rows={4}
+                className="border-2 focus:border-indigo-400 transition-colors resize-none"
+              />
+            </div>
           </CardContent>
         </Card>
 
         {/* Save Button */}
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-4">
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="min-w-32"
+            className="min-w-40 bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+            size="lg"
           >
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 mr-3 animate-spin" />
                 Menyimpan...
               </>
             ) : (
               <>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="h-5 w-5 mr-3" />
                 Simpan Pengaturan
               </>
             )}
