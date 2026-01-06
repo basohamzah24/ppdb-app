@@ -271,7 +271,13 @@ export default function HomeClient({ data }: { data: PageData }) {
               </Link>
               
               <button
-                onClick={() => setShowInfo(true)}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  console.log('Info Lengkap PPDB button clicked - opening modal')
+                  setShowInfo(true)
+                }}
                 className="px-8 py-4 bg-transparent border-2 border-white text-white text-lg font-semibold rounded-lg hover:bg-white hover:text-gray-900 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Info Lengkap PPDB
