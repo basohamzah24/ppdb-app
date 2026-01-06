@@ -270,12 +270,12 @@ export default function HomeClient({ data }: { data: PageData }) {
                 )}
               </Link>
               
-              <button
-                onClick={() => setShowInfo(true)}
-                className="px-8 py-4 bg-transparent border-2 border-white text-white text-lg font-semibold rounded-lg hover:bg-white hover:text-gray-900 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              <Link
+                href="/informasi"
+                className="px-8 py-4 bg-transparent border-2 border-white text-white text-lg font-semibold rounded-lg hover:bg-white hover:text-gray-900 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl inline-block text-center"
               >
                 Info Lengkap PPDB
-              </button>
+              </Link>
             </div>
           </div>
         </div>
